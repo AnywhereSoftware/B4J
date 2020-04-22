@@ -41,7 +41,7 @@ import anywheresoftware.b4a.BA.Version;
 @ShortName("WebSocketClient")
 @Events(values={"Connected", "Closed (Reason As String)", "TextMessage (Message As String)", "BinaryMessage (Data() As Byte)"})
 @DependsOn(values={"jetty_b4j"})
-@Version(1.10f)
+@Version(1.11f)
 public class WebSocketClientWrapper {
 	private BA ba;
 	private String eventName;
@@ -61,6 +61,12 @@ public class WebSocketClientWrapper {
 	 * Tries to connect to the given Url. The Url should start with ws:// or wss:// (for SSL)
 	 */
 	public void Connect(final String Url) {
+		Connect2(Url, new ClientUpgradeRequest());
+	}
+	/**
+	 * Similar to Connect. Allows to configure the upgrade request.
+	 */
+	public void Connect2(final String Url, final ClientUpgradeRequest UpgradeRequest) {
 		Runnable r = new Runnable() {
 			
 			@Override
@@ -68,8 +74,7 @@ public class WebSocketClientWrapper {
 				try {
 					wsc.start();
 					URI echoUri = new URI(Url);
-					ClientUpgradeRequest request = new ClientUpgradeRequest();
-					session = wsc.connect(new WSHandler(), echoUri, request);
+					session = wsc.connect(new WSHandler(), echoUri, UpgradeRequest);
 				} catch (Exception e) {
 					
 				}

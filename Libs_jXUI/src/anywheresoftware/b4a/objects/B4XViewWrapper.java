@@ -98,7 +98,7 @@ import anywheresoftware.b4j.xui.CSSUtils;
 /**
  * A generic view. Any view can be treated as a B4XView.
  */
-@Version(1.91f)
+@Version(2.00f)
 @ShortName("B4XView")
 public class B4XViewWrapper extends AbsObjectWrapper<Object>{
 	public static final int TOUCH_ACTION_DOWN = 0;
@@ -559,6 +559,15 @@ public class B4XViewWrapper extends AbsObjectWrapper<Object>{
 		ImageViewWrapper i = asImageViewWrapper();
 		i.SetImage(Bitmap);
 		i.setPreserveRatio(true);
+	}
+	/**
+	 * Gets the view's bitmap.
+	 * Supported types:
+	 * B4A - All views when the background drawable is a BitmapDrawable.
+	 * B4i and B4J - ImageView
+	 */
+	public B4XBitmapWrapper GetBitmap() {
+		return (B4XBitmapWrapper)AbsObjectWrapper.ConvertToWrapper(new B4XBitmapWrapper(), asImageViewWrapper().GetImage().getObjectOrNull());
 	}
 	private RuntimeException typeDoesNotMatch() {
 		return new RuntimeException("Type does not match (" + getObject().getClass() + ")");
