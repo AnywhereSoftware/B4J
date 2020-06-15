@@ -823,12 +823,13 @@ public class NodeWrapper<T extends Node> extends AbsObjectWrapper<T> implements 
 		@Override
 		public void innerInitialize(final BA ba, final String eventName, boolean keepOldObject) {
 			super.innerInitialize(ba, eventName, keepOldObject);
+			final Object sender = getObject();
 			if (ba.subExists(eventName + "_action")) {
 				getObject().setOnAction(new EventHandler<ActionEvent>() {
 
 					@Override
 					public void handle(ActionEvent arg0) {
-						ba.raiseEventFromUI(getObject(), eventName + "_action");
+						ba.raiseEventFromUI(sender, eventName + "_action");
 						arg0.consume();
 					}
 				});
@@ -838,7 +839,7 @@ public class NodeWrapper<T extends Node> extends AbsObjectWrapper<T> implements 
 
 					@Override
 					public void handle(ActionEvent arg0) {
-						ba.raiseEventFromUI(getObject(), eventName + "_click");
+						ba.raiseEventFromUI(sender, eventName + "_click");
 						arg0.consume();
 					}
 				});

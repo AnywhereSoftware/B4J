@@ -68,7 +68,7 @@ import netscape.javascript.JSObject;
 		"PolygonClick (SelectedPolygon As MapPolygon)",
 		"PolylineClick (SelectedPolyline As MapPolyline)"
 })
-@Version(1.81f)
+@Version(1.82f)
 public class GoogleMapWrapper
 {
 	@Hide

@@ -23,8 +23,14 @@ import com.lynden.gmapsfx.javascript.object.GoogleMap;
 import com.lynden.gmapsfx.javascript.object.LatLong;
 import com.lynden.gmapsfx.javascript.object.MapOptions;
 
+import anywheresoftware.b4a.objects.streams.File;
+import anywheresoftware.b4a.objects.streams.File.InputStreamWrapper;
+
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Scanner;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.CountDownLatch;
@@ -191,7 +197,14 @@ public class GoogleMapView extends AnchorPane {
             htmlFile = mapResourcePath;
             usingCustomHtml = true;
         }
-        
+//        try {
+//        	InputStream in = getClass().getResource(htmlFile).openStream();
+//        	String out = new Scanner(in, "UTF-8").useDelimiter("\\A").next();
+//        	in.close();
+//        	System.out.println(out);
+//		} catch (IOException e1) {
+//			e1.printStackTrace();
+//		}
         //System.out.println("htmlFile: " + htmlFile);
         
         CountDownLatch latch = new CountDownLatch(1);
@@ -236,6 +249,7 @@ public class GoogleMapView extends AnchorPane {
                 webengine.getLoadWorker().stateProperty().addListener(
                         new ChangeListener<Worker.State>() {
                             public void changed(ObservableValue ov, Worker.State oldState, Worker.State newState) {
+                            	//System.out.println("state: " + newState);
                                 if (newState == Worker.State.SUCCEEDED) {
                                     initialiseScript();
                                     //setInitialized(true);
