@@ -175,8 +175,15 @@ public class LayoutBuilder {
 							if (t instanceof ParameterizedType) {
 								ParameterizedType pt = (ParameterizedType)t;
 								if (pt.getActualTypeArguments().length > 0) {
+								
 									ParameterizedType fieldParamType = (ParameterizedType) field.getType().getGenericSuperclass();
-									if (((Class)fieldParamType.getActualTypeArguments()[0]).isAssignableFrom((Class)(pt.getActualTypeArguments()[0])) == false) {
+									Class actualType;
+									if (pt.getActualTypeArguments()[0] instanceof ParameterizedType) {
+										actualType = (Class)((ParameterizedType)pt.getActualTypeArguments()[0]).getActualTypeArguments()[0];
+									} else {
+										actualType = (Class)(pt.getActualTypeArguments()[0]);
+									}
+									if (((Class)fieldParamType.getActualTypeArguments()[0]).isAssignableFrom(actualType) == false) {
 										throw new RuntimeException("Cannot convert: " + ow.getClass() + ", to: " + field.getType());
 									}
 								}

@@ -98,7 +98,7 @@ import anywheresoftware.b4j.xui.CSSUtils;
 /**
  * A generic view. Any view can be treated as a B4XView.
  */
-@Version(2.00f)
+@Version(2.10f)
 @ShortName("B4XView")
 public class B4XViewWrapper extends AbsObjectWrapper<Object>{
 	public static final int TOUCH_ACTION_DOWN = 0;
@@ -736,6 +736,52 @@ public class B4XViewWrapper extends AbsObjectWrapper<Object>{
 	}
 	public void setRotation(double f) {
 		getNodeObject().setRotate(f);
+	}
+	
+	/**
+	 * Gets or sets the selection start index.
+	 *See also: B4XView.SetSelection.
+	 *Supported types:
+	 *B4A - EditText
+	 *B4i - TextField and TextView
+	 *B4J - TextField and TextArea
+	 */
+	public int getSelectionStart() {
+		return ((TextInputControl)getObject()).getSelection().getStart();
+	}
+	public void setSelectionStart(int s) {
+		SetSelection(s, 0);
+	}
+	/**
+	 * Gets the selection length.
+	 *See also: B4XView.SetSelection.
+	 *Supported types:
+	 *B4A - EditText
+	 *B4i - TextField and TextView
+	 *B4J - TextField and TextArea
+	 */
+	public int getSelectionLength() {
+		return ((TextInputControl)getObject()).getSelection().getLength();
+	}
+	/**
+	 * Sets the selection.
+	 *Supported types:
+	 *B4A - EditText
+	 *B4i - TextField and TextView
+	 *B4J - TextField and TextArea
+	 */
+	public void SetSelection(int Start, int Length) {
+		((TextInputControl)getObject()).selectRange(Start, Start + Length);
+	}
+	/**
+	 * Selects all text.
+	 *Supported types:
+	 *B4A - EditText
+	 *B4i - TextField and TextView
+	 *B4J - TextField and TextArea
+	 */
+	public void SelectAll() {
+		((TextInputControl)getObject()).selectAll();
 	}
 	/**
 	 * Represents a loaded image. Similar to B4A Bitmap, B4i Bitmap and B4J Image.

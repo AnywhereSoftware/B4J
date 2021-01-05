@@ -19,6 +19,8 @@
 
 import java.util.HashMap;
 
+import com.sun.javafx.scene.web.skin.HTMLEditorSkin;
+
 import javafx.scene.Node;
 import javafx.scene.web.HTMLEditor;
 import anywheresoftware.b4a.BA;
