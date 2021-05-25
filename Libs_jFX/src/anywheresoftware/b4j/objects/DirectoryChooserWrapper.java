@@ -21,6 +21,7 @@ import java.io.File;
 
 import javafx.stage.DirectoryChooser;
 import anywheresoftware.b4a.AbsObjectWrapper;
+import anywheresoftware.b4a.BA.RaisesSynchronousEvents;
 import anywheresoftware.b4a.BA.ShortName;
 
 /**
@@ -56,6 +57,7 @@ public class DirectoryChooserWrapper extends AbsObjectWrapper<DirectoryChooser>{
 	/**
 	 * Shows the modal dialog. Returns the selected directory or an empty string.
 	 */
+	@RaisesSynchronousEvents
 	public String Show(Form Owner) {
 		File f = getObject().showDialog(Owner.stage);
 		if (f == null)

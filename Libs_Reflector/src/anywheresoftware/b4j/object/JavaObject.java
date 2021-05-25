@@ -39,7 +39,7 @@ import anywheresoftware.b4a.BA.Version;
 
 @ShortName("JavaObject")
 @Events(values={"Event (MethodName As String, Args() As Object) As Object"})
-@Version(2.05f)
+@Version(2.06f)
 public class JavaObject extends AbsObjectWrapper<Object>{
 	private static final FieldCache fieldCache = new FieldCache();
 	private static final MethodCache methodCache = new MethodCache();
@@ -130,7 +130,7 @@ public class JavaObject extends AbsObjectWrapper<Object>{
 	/**
 	 * Runs the given method and returns the method return value.
 	 *MethodName - The case-sensitive method name.
-	 *Params - Method paramters (or Null).
+	 *Params - Method parameters (or Null).
 	 */
 	public Object RunMethod(String MethodName, Object[] Params) throws Exception{
 		Class<?> cls = getCurrentClass();

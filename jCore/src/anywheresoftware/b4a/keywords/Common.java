@@ -56,7 +56,7 @@ import anywheresoftware.b4a.objects.streams.File;
 /**
  * These are the internal keywords.
  */
-@Version(7.51f)
+@Version(9.00f)
 public class Common {
 
 	@Hide

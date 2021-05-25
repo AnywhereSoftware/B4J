@@ -39,10 +39,8 @@ import anywheresoftware.b4a.BA.ShortName;
  *Note that this map implementation does return items in the same order as they were added.
  *Usually you will use Put to add items and Get or GetDefault to get the values based on the key.
  *If you need to iterate over all the items you can use a For loop like:<code>
- *For i = 0 To Map1.Size - 1
- * Dim Key, Value As String
- * Key = Map1.GetKeyAt(i)
- * Value = Map1.GetValueAt(i)
+ *For Each Key As String In Map.Keys
+ * Dim Value As Object = Map.Get(Key)
  *Next</code>
  *Similar to a list, a map can hold any object, however if it is a process global variable then it cannot hold activity objects (like views).
  *Maps are very useful for storing applications settings. 

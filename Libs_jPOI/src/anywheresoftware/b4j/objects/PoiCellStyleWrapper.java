@@ -17,7 +17,6 @@
  
  package anywheresoftware.b4j.objects;
 
-import javafx.scene.paint.Paint;
 
 import org.apache.poi.ss.usermodel.BorderStyle;
 import org.apache.poi.ss.usermodel.CellStyle;
@@ -32,7 +31,6 @@ import org.apache.poi.xssf.usermodel.XSSFColor;
 import anywheresoftware.b4a.AbsObjectWrapper;
 import anywheresoftware.b4a.BA.Hide;
 import anywheresoftware.b4a.BA.ShortName;
-import anywheresoftware.b4j.objects.JFX.Colors;
 
 @ShortName("PoiCellStyle")
 public class PoiCellStyleWrapper extends AbsObjectWrapper<CellStyle>{
@@ -187,7 +185,7 @@ public class PoiCellStyleWrapper extends AbsObjectWrapper<CellStyle>{
 	 * Sets the cell's color.
 	 *This method is only supported when working with xlsx workbooks (nothing will happen with xls format).
 	 */
-	public void setForegroundColor(Paint Color) {
+	public void setForegroundColor(int Color) {
 		if (this.getObject() instanceof XSSFCellStyle) {
 			XSSFCellStyle cs = (XSSFCellStyle)getObject();
 			cs.setFillForegroundColor(createColor(Color));
@@ -197,8 +195,8 @@ public class PoiCellStyleWrapper extends AbsObjectWrapper<CellStyle>{
 		}
 	}
 	@Hide
-	public static XSSFColor createColor(Paint Color) {
-		return new XSSFColor(new java.awt.Color(Colors.To32Bit((Paint)Color)), new DefaultIndexedColorMap());
+	public static XSSFColor createColor(int Color) {
+		return new XSSFColor(new java.awt.Color(Color), new DefaultIndexedColorMap());
 	}
 	
 }

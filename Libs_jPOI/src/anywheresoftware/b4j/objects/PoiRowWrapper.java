@@ -91,6 +91,14 @@ public class PoiRowWrapper extends AbsObjectWrapper<Row>{
 		return pcw;
 	}
 	/**
+	 * Creates a blank cell.
+	 */
+	public PoiCellWrapper CreateCellBlank(int CellIndex) {
+		PoiCellWrapper pcw = createCell(CellIndex, CellType.BLANK);
+		return pcw;
+	}
+	
+	/**
 	 * Creates a boolean cell at the given index.
 	 */
 	public PoiCellWrapper CreateCellBoolean(int CellIndex, boolean Value) {

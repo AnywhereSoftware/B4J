@@ -42,6 +42,7 @@ import anywheresoftware.b4a.AbsObjectWrapper;
 import anywheresoftware.b4a.BA;
 import anywheresoftware.b4a.BA.ShortName;
 import anywheresoftware.b4a.keywords.Bit;
+import anywheresoftware.b4a.keywords.Common;
 import anywheresoftware.b4a.objects.collections.List;
 import anywheresoftware.b4a.objects.collections.Map;
 /**
@@ -71,21 +72,29 @@ public class File {
 	/**
 	 * Returns the path to a folder that is suitable for writing files.
 	 *On Windows, folders under Program Files are read-only. Therefore File.DirApp will be read-only as well.
-	 *This method returns the same path as File.DirApp on non-Windows computers.
 	 *On Windows it returns the path to the user data folder. For example:
 	 *C:\Users\[user name]\AppData\Roaming\[AppName]
+	 *On Mac it returns ~/Library/Application Support/[AppName]
+	 *On Linux it returns the same path as File.DirApp.
 	 */
-	public static String DirData(String AppName) {
+	public static String DirData(String AppName) throws IOException {
 		if (os == 0) {
 			String s = System.getProperty("os.name", "").toLowerCase(BA.cul);
 			if (s.contains("win"))
-				os = 1;
+				os = 1; //windows
+			else if (s.contains("mac"))
+				os = 2; //mac
 			else
-				os = 2;
+				os = 3; //linux
 		}
-		if (os == 1) {
-			String res = File.Combine(System.getenv("AppData"), AppName);
-			File.MakeDir(res, "");
+		if (os == 1 || os == 2) {
+			String res;
+			if (os == 1)
+				res = File.Combine(System.getenv("AppData"), AppName);
+			else
+				res = File.Combine(Common.GetSystemProperty("user.home", ""), "Library/Application Support/" + AppName);
+			if (File.Exists(res, "") == false)
+				File.MakeDir(res, "");
 			return res;
 		}
 		else

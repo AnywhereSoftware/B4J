@@ -59,7 +59,6 @@ import javafx.scene.paint.Paint;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontPosture;
 import javafx.scene.text.FontWeight;
-import javafx.scene.web.WebView;
 import anywheresoftware.b4a.AbsObjectWrapper;
 import anywheresoftware.b4a.BA;
 import anywheresoftware.b4a.BA.B4aDebuggable;
@@ -385,8 +384,12 @@ public class NodeWrapper<T extends Node> extends AbsObjectWrapper<T> implements 
 		}
 		else if (n instanceof Canvas) {
 			return ((Canvas)n).getWidth();
-		} else if (n instanceof WebView) {
-			return ((WebView)n).getWidth();
+		} else if ((n.getClass().getName().equals("javafx.scene.web.WebView"))) {
+			try {
+				return (double) n.getClass().getMethod("getWidth").invoke(n);
+			} catch (Exception e) {
+				throw new RuntimeException(e);
+			}
 		}
 		else
 			return -1;
@@ -405,8 +408,12 @@ public class NodeWrapper<T extends Node> extends AbsObjectWrapper<T> implements 
 		}
 		else if (n instanceof Canvas) {
 			return ((Canvas)n).getHeight();
-		} else if (n instanceof WebView) {
-			return ((WebView)n).getHeight();
+		} else if ((n.getClass().getName().equals("javafx.scene.web.WebView"))) {
+			try {
+				return (double) n.getClass().getMethod("getHeight").invoke(n);
+			} catch (Exception e) {
+				throw new RuntimeException(e);
+			}
 		}
 		else
 			return -1;
@@ -487,11 +494,15 @@ public class NodeWrapper<T extends Node> extends AbsObjectWrapper<T> implements 
 				((Canvas)Node).setWidth(Width);
 			if (Height != null)
 				((Canvas)Node).setHeight(Height);
-		} else if (Node instanceof WebView) {
+		} else if (Node.getClass().getName().equals("javafx.scene.web.WebView")) {
+			try {
 			if (Width != null)
-				((WebView)Node).setPrefWidth(Width);
+				Node.getClass().getMethod("setPrefWidth", double.class).invoke(Node, Width);
 			if (Height != null)
-				((WebView)Node).setPrefHeight(Height);
+				Node.getClass().getMethod("setPrefHeight", double.class).invoke(Node, Height);
+			} catch (Exception e) {
+				throw new RuntimeException(e);
+			}
 		}
 	}
 

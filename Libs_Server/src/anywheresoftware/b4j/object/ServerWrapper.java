@@ -202,7 +202,6 @@ public class ServerWrapper {
 			context.addServlet(sh, hd.path);
 		}
 
-
 		ServletHolder staticHolder = context.addServlet(DefaultServlet.class, "/");
 		if (staticFilesOptions != null)
 			staticHolder.setInitParameters(staticFilesOptions);

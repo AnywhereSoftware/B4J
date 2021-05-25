@@ -66,7 +66,6 @@ public class Form {
 	}
 	/**
 	 * Initializes the form and set the subs that will handle the form events (including the RootPane events).
-	 *Pass -1 to the Width or Height if you want the form size to be calculated automatically based on its contents.
 	 */
 	public void Initialize(BA ba, String EventName, double Width, double Height) {
 		stage = new Stage();

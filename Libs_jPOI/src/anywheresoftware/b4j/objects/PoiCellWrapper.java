@@ -14,8 +14,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
- package anywheresoftware.b4j.objects;
+
+package anywheresoftware.b4j.objects;
 
 import java.util.Date;
 
@@ -24,6 +24,7 @@ import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.DateUtil;
 
 import anywheresoftware.b4a.AbsObjectWrapper;
+import anywheresoftware.b4a.BA.Hide;
 import anywheresoftware.b4a.BA.ShortName;
 
 @ShortName("PoiCell")
@@ -34,7 +35,7 @@ public class PoiCellWrapper extends AbsObjectWrapper<Cell>{
 	public static final Object TYPE_ERROR = CellType.ERROR;
 	public static final Object TYPE_FORMULA = CellType.FORMULA;
 	public static final Object TYPE_NUMERIC = CellType.NUMERIC;
-	
+
 	/**
 	 * Gets or sets the cell style object.
 	 *PoiCellStyle objects can be shared by multiple cells (if the style is the same).
@@ -45,7 +46,7 @@ public class PoiCellWrapper extends AbsObjectWrapper<Cell>{
 	public void setCellStyle(PoiCellStyleWrapper s) {
 		getObject().setCellStyle(s.getObject());
 	}
-	
+
 	/**
 	 * Gets the cell column index.
 	 */
@@ -107,25 +108,40 @@ public class PoiCellWrapper extends AbsObjectWrapper<Cell>{
 		getObject().setCellFormula(b);
 	}
 	/**
+	 * Same as Value for cells other than formula cells. Returns the cached value for formula cells.
+	 */
+	public Object getValueCached() {
+		Cell cell = getObject();
+		if (cell.getCellType() == CellType.FORMULA)
+			return getObjectFromCell(cell, cell.getCachedFormulaResultType());
+		else
+			return getObjectFromCell(cell, cell.getCellType());
+	}
+	@Hide
+	public Object getObjectFromCell(Cell cell, CellType ctype) {
+		switch (ctype) {
+		case STRING:
+			return cell.getRichStringCellValue().getString();
+		case NUMERIC:
+			if (DateUtil.isCellDateFormatted(cell)) {
+				return cell.getDateCellValue().getTime();
+			} else {
+				return cell.getNumericCellValue();
+			}
+		case BOOLEAN:
+			return cell.getBooleanCellValue();
+		case FORMULA:
+			return cell.getCellFormula();
+		default:
+			return "";
+		}	
+	}
+	/**
 	 * Returns the cell value based on the cell type.
 	 */
 	public Object getValue() {
 		Cell cell = getObject();
-		 switch (getObject().getCellType()) {
-         case STRING:
-             return cell.getRichStringCellValue().getString();
-         case NUMERIC:
-             if (DateUtil.isCellDateFormatted(cell)) {
-                 return cell.getDateCellValue();
-             } else {
-                 return cell.getNumericCellValue();
-             }
-         case BOOLEAN:
-             return cell.getBooleanCellValue();
-         case FORMULA:
-             return cell.getCellFormula();
-         default:
-             return "";
-     }
+		return getObjectFromCell(cell, getObject().getCellType());
 	}
+	
 }

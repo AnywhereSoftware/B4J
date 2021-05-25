@@ -31,6 +31,7 @@ import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 
 import anywheresoftware.b4a.AbsObjectWrapper;
 import anywheresoftware.b4a.BA;
+import anywheresoftware.b4a.BA.DependsOn;
 import anywheresoftware.b4a.BA.Events;
 import anywheresoftware.b4a.BA.Hide;
 import anywheresoftware.b4a.BA.Permissions;
@@ -41,9 +42,10 @@ import anywheresoftware.b4a.BA.Version;
  * Implementation of a MQTT client.
  */
 @ShortName("MqttClient")
-@Events(values={"Connected (Success As Boolean)", "Disconnected", "MessageArrived (Topic As String, Payload() As Byte)"})
+@Events(values={"Connected (Success As Boolean)", "Disconnected", "MessageArrived (Topic As String, Payload() As Byte)", })
 @Permissions(values={"android.permission.INTERNET"})
-@Version(1.01f)
+@Version(1.25f)
+@DependsOn(values= {"org.eclipse.paho.client.mqttv3-1.2.5"})
 public class MqttAsyncClientWrapper{
 	public static final int QOS_0_MOST_ONCE = 0;
 	public static final int QOS_1_LEAST_ONCE = 1;
@@ -97,6 +99,8 @@ public class MqttAsyncClientWrapper{
 	 * Similar to Connect. Allows you to configure the connection options.
 	 */
 	public void Connect2(MqttConnectOptions Options) throws MqttSecurityException, MqttException {
+		if (Options.getMaxInflight() == 10) //new default value
+			Options.setMaxInflight(100);
 		client.connect(Options, null, new IMqttActionListener() {
 			
 			@Override

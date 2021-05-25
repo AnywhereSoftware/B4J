@@ -17,8 +17,6 @@
  
  package anywheresoftware.b4j.objects;
 
-import javafx.scene.paint.Paint;
-
 import org.apache.poi.ss.usermodel.Font;
 import org.apache.poi.xssf.usermodel.XSSFFont;
 
@@ -67,9 +65,24 @@ public class PoiFontWrapper extends AbsObjectWrapper<Font>{
 	public void setUnderline(boolean b) {
 		getObject().setUnderline(b ? Font.U_SINGLE : Font.U_NONE);
 	}
-	public void SetColor(Paint Color) {
+	public void SetColor(int Color) {
 		if (this.getObject() instanceof XSSFFont) {
 			((XSSFFont)this.getObject()).setColor(PoiCellStyleWrapper.createColor(Color));
 		}
+	}
+	/**
+	 * Gets or sets an indexed color.
+	 */
+	public void setIndexedColor (short Color) {
+		this.getObject().setColor(Color);
+	}
+	public short getIndexedColor () {
+		return getObject().getColor();
+	}
+	/**
+	 * Returns the font index in the workbook fonts table.
+	 */
+	public int getIndex() {
+		return getObject().getIndex();
 	}
 }
