@@ -931,7 +931,7 @@ public class B4XViewWrapper extends AbsObjectWrapper<Object>{
 		}
 		/**
 		 * B4A, B4i - Does nothing.
-		 * B4J - Sets the subfolder name on Windows. The actual path will be similar to: C:\Users\[user name]\AppData\Roaming\[AppName].
+		 * B4J - Sets the subfolder name on Windows and Mac. The actual path will be similar to: C:\Users\[user name]\AppData\Roaming\[AppName].
 		 *Does nothing on other platforms.
 		 */
 		public static void SetDataFolder(String AppName) {
@@ -945,7 +945,11 @@ public class B4XViewWrapper extends AbsObjectWrapper<Object>{
 		public static String getDefaultFolder() {
 			if (DataFolderName == null)
 				throw new RuntimeException("SetDataFolder must be called before using this method.");
-			return File.DirData(DataFolderName);
+			try {
+				return File.DirData(DataFolderName);
+			} catch (Exception e) {
+				throw new RuntimeException(e);
+			}
 		}
 		/**
 		 * B4A, B4i - Does nothing.
