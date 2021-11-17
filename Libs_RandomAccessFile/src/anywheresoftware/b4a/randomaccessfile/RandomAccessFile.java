@@ -55,7 +55,7 @@ import anywheresoftware.b4a.objects.collections.Map.MyMap;
  *A short tutorial about the encryption methods is available <link>here|http://www.basic4ppc.com/forum/basic4android-getting-started-tutorials/11565-encryptying-information-randomaccessfile-library.html</link>.
  */
 @ShortName("RandomAccessFile")
-@Version(2.33f)
+@Version(2.34f)
 public class RandomAccessFile {
 	private FileChannel channel;
 	private ByteBuffer bb4;

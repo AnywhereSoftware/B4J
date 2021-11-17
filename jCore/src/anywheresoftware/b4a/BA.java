@@ -70,10 +70,11 @@ public abstract class BA {
 	public static final ThreadLocal<Object> senderHolder = new ThreadLocal<Object>();
 	public Exception lastException = null;
 	private static int nestLevel;
+	private static boolean IDERun;
 	
 	static {
 		Thread.setDefaultUncaughtExceptionHandler(new B4AExceptionHandler());
-
+		IDERun = System.getProperty("b4j.ide", "false").equals("true");
 	}
 
 
@@ -338,6 +339,25 @@ public abstract class BA {
 	}
 
 
+	public static void addLogPrefix(String prefix, String message) {
+		prefix = "~" + prefix + ":";
+		if (message == null) {
+			message = "(null string)";
+		}
+		if (message.length() < 3900 && IDERun) {
+			StringBuilder sb = new StringBuilder();
+			for (String line : message.split("\\n")) {
+				if (line.length() > 0) {
+					sb.append(prefix).append(line);
+				} 
+				sb.append("\n");
+			}
+			message = sb.toString();
+		}
+		Log(message);
+	}
+
+	
 	public static void Log(String Message) {
 		System.out.println(Message == null ? "null" : Message);
 	}

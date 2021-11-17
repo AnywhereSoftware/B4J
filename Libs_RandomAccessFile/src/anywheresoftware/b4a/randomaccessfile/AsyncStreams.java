@@ -14,12 +14,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
- package anywheresoftware.b4a.randomaccessfile;
+
+package anywheresoftware.b4a.randomaccessfile;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.SocketTimeoutException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -55,6 +56,7 @@ public class AsyncStreams {
 	 * Received streams will be saved in this folder.
 	 */
 	public String StreamFolder;
+	public boolean ContinueAfterTimeout;
 	volatile long streamReceived;
 	volatile long streamTotal;
 	/**
@@ -78,15 +80,15 @@ public class AsyncStreams {
 	 *EventName - Determines the Subs that handle the NewData and Error events.
 	 */
 	public void InitializePrefix(BA ba, InputStream In, boolean BigEndian, OutputStream Out, String EventName) throws IOException {
-								 
+
 		StreamFolder = File.getDirTemp();
-	  
-											 
+
+
 		shared(ba, In, Out, EventName, BigEndian, true);
-//		if (File.getExternalWritable())
-//			StreamFolder = File.getDirDefaultExternal();
-//		else
-//			StreamFolder = File.getDirInternalCache();
+		//		if (File.getExternalWritable())
+		//			StreamFolder = File.getDirDefaultExternal();
+		//		else
+		//			StreamFolder = File.getDirInternalCache();
 	}
 	/**
 	 * Returns the total number of bytes of the currently received file. Only valid in prefix mode.
@@ -189,13 +191,30 @@ public class AsyncStreams {
 		ain = null;
 		aout = null;
 	}
+	/**
+	 * Stops AsyncStreams without closing the underlying streams. This is useful for cases such as STARTTLS implementations.
+	 * The underlying streams must be configured with a read timeout and ContinueAfterTimeout should be set to True.
+	 *Note that it only works in non-prefix mode.
+	 */
+	public void StopWithoutClosingStreams() throws IOException {
+		if (tin != null && ain != null) {
+			ain.working = false;
+			tin.interrupt();
+		}
+		if (tout != null && aout != null) {
+			aout.working = false;
+			tout.interrupt();
+		}
+		ain = null;
+		aout = null;
+	}
 
 	private class AIN implements Runnable {
 		private final InputStream in;
 		private byte[] buffer = new byte[8192];
 		private final byte[] prefixBuffer = new byte[4];
 		private final boolean prefix;
-		private volatile boolean working = true;
+		public volatile boolean working = true;
 		private String ev = eventName + "_newdata";
 		private ByteBuffer bb;
 		public AIN (InputStream in, boolean bigEndian, boolean prefix) {
@@ -211,19 +230,28 @@ public class AsyncStreams {
 				byte[] data;
 
 				while (working) {
-					
+
 					if (!prefix) {
-						int count = in.read(buffer);
-						if (count == 0)
-							continue;
-						if (count < 0) {
-							closeUnexpected();
-							break;
+						try {
+							int count = in.read(buffer);
+							if (count == 0)
+								continue;
+							if (count < 0) {
+								closeUnexpected();
+								break;
+							}
+							if (!working)
+								break;
+							data = new byte[count];
+							System.arraycopy(buffer, 0, data, 0, count);
+						} catch (SocketTimeoutException ste) {
+							if (!working)
+								break;
+							if (!ContinueAfterTimeout) {
+								throw ste;
+							} else
+								continue;
 						}
-						if (!working)
-							break;
-						data = new byte[count];
-						System.arraycopy(buffer, 0, data, 0, count);
 					}
 					else { //prefix
 						if (!readNumberOfBytes(in, prefixBuffer, 4))
@@ -235,7 +263,7 @@ public class AsyncStreams {
 						int msgLength = bb.getInt(0);
 						if (msgLength > 100000000)
 							throw new RuntimeException("Message size too large. Prefix mode can only work if both sides of the connection follow the 'prefix' protocol.");
-						
+
 						if (msgLength == STREAM_PREFIX) {
 							if (!readNumberOfBytes(in, buffer, 8))
 								break;
@@ -250,7 +278,7 @@ public class AsyncStreams {
 							String FileName =  "AsyncInput" + String.valueOf(i);
 							OutputStream out = File.OpenOutput(StreamFolder, FileName, false).getObject();
 							try {
-								
+
 								Adler32 adler = new Adler32();
 								while (streamReceived < streamTotal) {
 									long remain = streamTotal - streamReceived;
@@ -274,7 +302,7 @@ public class AsyncStreams {
 							ba.raiseEventFromDifferentThread(AsyncStreams.this, null, AsyncStreams.this, eventName + "_newstream", true, new Object[] {StreamFolder,
 									FileName});
 							continue;//!!!
-							
+
 						}
 						else {
 							if (msgLength > buffer.length) { //length is larger than our array. Create a new array
@@ -288,7 +316,7 @@ public class AsyncStreams {
 					}
 					ba.raiseEventFromDifferentThread(AsyncStreams.this, null, AsyncStreams.this, ev, true, new Object[] {data});
 				}
-				
+
 			} catch (Exception e) {
 				if (working) {
 					e.printStackTrace();
@@ -296,11 +324,12 @@ public class AsyncStreams {
 					ba.raiseEventFromDifferentThread(AsyncStreams.this, null, AsyncStreams.this, eventName + "_error", false, null);
 				}
 			}
-			
+
 		}
 		private boolean readNumberOfBytes(InputStream in, byte[] buffer, int len) throws IOException {
 			int count = 0;
 			while (count < len) {
+
 				int c = in.read(buffer, count, len - count);
 				if (c == -1) {
 					closeUnexpected();
@@ -321,12 +350,12 @@ public class AsyncStreams {
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-			
+
 		}
 	}
 	private class AOUT implements Runnable {
 		private final OutputStream out;
-		private volatile boolean working = true;
+		public volatile boolean working = true;
 		private final ArrayBlockingQueue<Object> queue = new ArrayBlockingQueue<Object>(100);
 		private final boolean prefix;
 		private final ByteBuffer bb;
@@ -439,7 +468,7 @@ public class AsyncStreams {
 				e.printStackTrace();
 			}
 		}
-		
+
 	}
 	static class StreamAndSize {
 		long size;

@@ -56,7 +56,7 @@ import anywheresoftware.b4a.objects.streams.File;
 /**
  * These are the internal keywords.
  */
-@Version(9.10f)
+@Version(9.30f)
 public class Common {
 
 	@Hide
@@ -160,6 +160,16 @@ public class Common {
 	public static void LogDebug(String Message) {
 		if (BA.debugMode)
 			BA.Log(Message);
+	}
+	/**
+	 * Logs a message. The message will be displayed in the IDE with the specified color.
+	 */
+	public static void LogColor(String Message, int Color) {
+	}
+	@Hide
+	public static void LogImpl(String line, String Message, int Color) {
+		String prefix = Color == 0 ? "l0" + line : "L0" + line + "~" + Color;
+		BA.addLogPrefix(prefix, Message);
 	}
 	/**
 	 * Calling this method causes the thread to start managing the message queue.
