@@ -512,7 +512,7 @@ public class SQL implements CheckForReinitialize{
 		/**
 		 * Moves the cursor to the next result. Returns false when the cursor reaches the end.
 		 *Example:<code>
-		 *Do While ResultSet1.Next
+		 *Do While ResultSet1.NextRow
 		 * 'Work with Row
 		 *Loop</code>
 		 */

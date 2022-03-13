@@ -32,7 +32,7 @@ import anywheresoftware.b4a.BA.ShortName;
 import anywheresoftware.b4a.BA.Version;
 import anywheresoftware.b4a.objects.collections.List;
 
-@Version(1.31f)
+@Version(1.32f)
 @ShortName("Serial")
 @DependsOn(values={"jssc", "slf4j-jdk14-1.7.25"})
 public class Serial {

@@ -932,7 +932,6 @@ public class B4XViewWrapper extends AbsObjectWrapper<Object>{
 		/**
 		 * B4A, B4i - Does nothing.
 		 * B4J - Sets the subfolder name on Windows and Mac. The actual path will be similar to: C:\Users\[user name]\AppData\Roaming\[AppName].
-		 *Does nothing on other platforms.
 		 */
 		public static void SetDataFolder(String AppName) {
 			DataFolderName = AppName;

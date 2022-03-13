@@ -75,6 +75,8 @@ public abstract class BA {
 	static {
 		Thread.setDefaultUncaughtExceptionHandler(new B4AExceptionHandler());
 		IDERun = System.getProperty("b4j.ide", "false").equals("true");
+		if (System.getProperty("b4j.simplelogs", "false").equals("true"))
+			IDERun = false;
 	}
 
 
