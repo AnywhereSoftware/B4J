@@ -23,6 +23,7 @@ import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
+import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextArea;
@@ -150,8 +151,22 @@ public class TextInputControlWrapper<T extends TextInputControl> extends Control
 					}
 				});
 			}
-
 		}
+		
+		/**
+		 * Gets or sets the content alignment.
+		 *The possible values are: TOP_LEFT, TOP_CENTER, TOP_RIGHT,
+		 *CENTER_LEFT, CENTER, CENTER_RIGHT,
+		 *BOTTOM_LEFT, BOTTOM_CENTER, BOTTOM_RIGHT,
+		 *BASELINE_LEFT, BASELINE_CENTER and BASELINE_RIGHT.
+		 */
+		public String getAlignment() {
+			return getObject().getAlignment().toString();
+		}
+		public void setAlignment(String s) {
+			getObject().setAlignment(Enum.valueOf(Pos.class, s));
+		}
+		
 		@SuppressWarnings({ "unchecked", "rawtypes" })
 		@Hide
 		public static Node build(Object prev, HashMap<String, Object> props, boolean designer, Object tag) throws Exception{
@@ -160,6 +175,8 @@ public class TextInputControlWrapper<T extends TextInputControl> extends Control
 			if (vg == null || (vg instanceof PasswordField != password)) 
 				vg = (Node) NodeWrapper.buildNativeView((Class)(password ? PasswordField.class : TextField.class), props, designer);
 			vg = TextInputControlWrapper.build(vg, props, designer);
+			if (props.containsKey("alignment"))
+				((TextField)vg).setAlignment(Enum.valueOf(Pos.class, (String)props.get("alignment")));
 			return vg;
 		}
 	}

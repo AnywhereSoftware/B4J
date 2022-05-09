@@ -20,7 +20,9 @@
 import java.lang.reflect.Method;
 
 import anywheresoftware.b4a.BA;
+import anywheresoftware.b4a.BA.Hide;
 
+@Hide
 public class BackgroundWorkersManager {
 	private final boolean debug;
 	private final BA ba;

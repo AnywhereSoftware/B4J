@@ -20,29 +20,15 @@
 import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.Enumeration;
 import java.util.Map.Entry;
 import java.util.concurrent.CountDownLatch;
 
-import javax.servlet.Filter;
-import javax.servlet.FilterChain;
-import javax.servlet.FilterConfig;
-import javax.servlet.MultipartConfigElement;
-import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.Part;
-
+import org.eclipse.jetty.server.MultiPartFormInputStream;
+import org.eclipse.jetty.server.MultiPartFormInputStream.MultiPart;
 import org.eclipse.jetty.server.Response;
-import org.eclipse.jetty.util.MultiPartInputStreamParser;
-import org.eclipse.jetty.util.MultiPartInputStreamParser.MultiPart;
 
 import anywheresoftware.b4a.AbsObjectWrapper;
 import anywheresoftware.b4a.B4AClass;
@@ -54,9 +40,22 @@ import anywheresoftware.b4a.objects.collections.List;
 import anywheresoftware.b4a.objects.collections.Map;
 import anywheresoftware.b4a.objects.streams.File.InputStreamWrapper;
 import anywheresoftware.b4a.objects.streams.File.OutputStreamWrapper;
+import jakarta.servlet.Filter;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.FilterConfig;
+import jakarta.servlet.MultipartConfigElement;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.Part;
 
 @Hide
 public class JServlet extends HttpServlet implements Filter{
+	private static final long serialVersionUID = 1L;
 	private final Class<?> handlerClass;
 	private final Method initializeMethod;
 	private final boolean singleThread;
@@ -279,13 +278,12 @@ public class JServlet extends HttpServlet implements Filter{
 		 */
 		public Map GetMultipartData(String Folder, long MaxSize) throws IOException, ServletException {
 			MultipartConfigElement config = new MultipartConfigElement(Folder, MaxSize, MaxSize, 81920);
-			MultiPartInputStreamParser in = new MultiPartInputStreamParser(getObject().getInputStream(), getObject().getContentType(),
-					config, new File(Folder));
+			MultiPartFormInputStream in = new MultiPartFormInputStream(getObject().getInputStream(), getObject().getContentType(), config,  new File(Folder));
 			Collection<Part> parts = in.getParts();
 			Map m = new Map();
 			m.Initialize();
 			for (Part p : parts) {
-				MultiPartInputStreamParser.MultiPart mp = (MultiPartInputStreamParser.MultiPart)p;
+				MultiPartFormInputStream.MultiPart mp = (MultiPartFormInputStream.MultiPart)p;
 				m.Put(mp.getName(),  mp);
 			}
 			return m;

@@ -21,21 +21,20 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.net.SocketTimeoutException;
+import java.time.Duration;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-import javax.servlet.http.HttpSession;
-
 import org.eclipse.jetty.websocket.api.BatchMode;
 import org.eclipse.jetty.websocket.api.Session;
 import org.eclipse.jetty.websocket.api.WebSocketAdapter;
-import org.eclipse.jetty.websocket.common.WebSocketRemoteEndpoint;
-import org.eclipse.jetty.websocket.servlet.ServletUpgradeRequest;
-import org.eclipse.jetty.websocket.servlet.ServletUpgradeResponse;
-import org.eclipse.jetty.websocket.servlet.WebSocketCreator;
-import org.eclipse.jetty.websocket.servlet.WebSocketServlet;
-import org.eclipse.jetty.websocket.servlet.WebSocketServletFactory;
+import org.eclipse.jetty.websocket.common.JettyWebSocketRemoteEndpoint;
+import org.eclipse.jetty.websocket.server.JettyServerUpgradeRequest;
+import org.eclipse.jetty.websocket.server.JettyServerUpgradeResponse;
+import org.eclipse.jetty.websocket.server.JettyWebSocketCreator;
+import org.eclipse.jetty.websocket.server.JettyWebSocketServlet;
+import org.eclipse.jetty.websocket.server.JettyWebSocketServletFactory;
 
 import anywheresoftware.b4a.AbsObjectWrapper;
 import anywheresoftware.b4a.B4AClass;
@@ -44,10 +43,12 @@ import anywheresoftware.b4a.BA.Hide;
 import anywheresoftware.b4a.keywords.Common;
 import anywheresoftware.b4a.objects.collections.Map;
 import anywheresoftware.b4j.objects.collections.JSONParser;
+import jakarta.servlet.http.HttpSession;
 
 public class WebSocketModule {
 	@Hide
-	public static class Servlet extends WebSocketServlet {
+	public static class Servlet extends JettyWebSocketServlet  {
+		private static final long serialVersionUID = 1L;
 		public static int DATA_TIMEOUT = 10000;
 		private final Class<?> handlerClass;
 		private final Method initializeMethod;
@@ -66,19 +67,16 @@ public class WebSocketModule {
 			}
 		}
 		@Override
-		public void configure(WebSocketServletFactory factory) {
-			factory.getPolicy().setIdleTimeout(maxIdleTimeMinutes * 1000 * 60);
-			factory.setCreator(new WebSocketCreator() {
+		protected void configure(JettyWebSocketServletFactory factory) {
+			factory.setIdleTimeout(Duration.ofMinutes(maxIdleTimeMinutes));
+			factory.setCreator(new JettyWebSocketCreator() {
 
 				@Override
-				public Object createWebSocket(ServletUpgradeRequest req,
-						ServletUpgradeResponse resp) {
-					HttpSession hs = req.getHttpServletRequest().getSession(true);
-					if (hs.isNew())
-						hs.setMaxInactiveInterval(maxIdleTimeMinutes * 60);
+				public Object createWebSocket(JettyServerUpgradeRequest req, JettyServerUpgradeResponse resp) {
 					return new Adapter(Servlet.this);
 				}
 			});
+			
 		}
 	}
 	@Hide
@@ -95,7 +93,7 @@ public class WebSocketModule {
 		@Override
 		public void onWebSocketConnect(Session sess) {
 			super.onWebSocketConnect(sess);
-			((WebSocketRemoteEndpoint)sess.getRemote()).setBatchMode(BatchMode.ON);
+			((JettyWebSocketRemoteEndpoint)sess.getRemote()).setBatchMode(BatchMode.ON);
 			handler = new ThreadHandler();
 			if (parentServlet.singleThread) {
 				BA.firstInstance.postRunnable(handler);

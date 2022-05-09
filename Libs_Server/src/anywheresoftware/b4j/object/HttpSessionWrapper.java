@@ -19,11 +19,11 @@
 
 import java.util.Enumeration;
 
-import javax.servlet.http.HttpSession;
 
 import anywheresoftware.b4a.AbsObjectWrapper;
 import anywheresoftware.b4a.BA.ShortName;
 import anywheresoftware.b4a.objects.collections.List;
+import jakarta.servlet.http.HttpSession;
 
 /**
  * HttpSessions allows you to identify a user across multiple requests and to store data specific to this user.

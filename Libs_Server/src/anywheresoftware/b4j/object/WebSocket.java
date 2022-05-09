@@ -28,8 +28,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import org.eclipse.jetty.websocket.api.Session;
-import org.eclipse.jetty.websocket.common.WebSocketSession;
-import org.eclipse.jetty.websocket.servlet.ServletUpgradeRequest;
+import org.eclipse.jetty.websocket.server.JettyServerUpgradeRequest;
 
 import anywheresoftware.b4a.AbsObjectWrapper;
 import anywheresoftware.b4a.B4AClass;
@@ -351,14 +350,14 @@ public class WebSocket{
 	 */
 	public ServletRequestWrapper getUpgradeRequest() {
 		return (ServletRequestWrapper) AbsObjectWrapper.ConvertToWrapper(new ServletRequestWrapper(),
-				((ServletUpgradeRequest)((WebSocketSession)session).getUpgradeRequest()).getHttpServletRequest());
+				((JettyServerUpgradeRequest)session.getUpgradeRequest()).getHttpServletRequest());
 	}
 	/**
 	 * Returns the http session object which is tied to the current user.
 	 */
 	public HttpSessionWrapper getSession() {
 		return (HttpSessionWrapper) AbsObjectWrapper.ConvertToWrapper(new HttpSessionWrapper(),
-				((ServletUpgradeRequest)((WebSocketSession)session).getUpgradeRequest()).getHttpServletRequest().getSession());
+				((JettyServerUpgradeRequest)session.getUpgradeRequest()).getHttpServletRequest().getSession());
 	}
 	/**
 	 * Closes the WebSocket connection.

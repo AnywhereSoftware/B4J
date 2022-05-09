@@ -14,29 +14,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
- package anywheresoftware.b4j.object;
 
-import java.security.Provider;
-import java.security.Security;
+package anywheresoftware.b4j.object;
+
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
-import javax.servlet.DispatcherType;
-import javax.servlet.Filter;
-
 import org.eclipse.jetty.alpn.server.ALPNServerConnectionFactory;
-import org.eclipse.jetty.http.HttpMethod;
-import org.eclipse.jetty.http2.HTTP2Cipher;
 import org.eclipse.jetty.http2.server.HTTP2ServerConnectionFactory;
 import org.eclipse.jetty.server.Connector;
+import org.eclipse.jetty.server.CustomRequestLog;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.HttpConfiguration;
 import org.eclipse.jetty.server.HttpConnectionFactory;
-import org.eclipse.jetty.server.NCSARequestLog;
+import org.eclipse.jetty.server.RequestLogWriter;
 import org.eclipse.jetty.server.SecureRequestCustomizer;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
@@ -52,6 +46,7 @@ import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
+import org.eclipse.jetty.websocket.server.config.JettyWebSocketServletContainerInitializer;
 
 import anywheresoftware.b4a.AbsObjectWrapper;
 import anywheresoftware.b4a.BA;
@@ -66,16 +61,43 @@ import anywheresoftware.b4a.objects.collections.List;
 import anywheresoftware.b4a.objects.collections.Map;
 import anywheresoftware.b4a.objects.collections.Map.MyMap;
 import anywheresoftware.b4a.objects.streams.File;
+import jakarta.servlet.DispatcherType;
+import jakarta.servlet.Filter;
 
 @CustomClasses(values = {
 		@CustomClass(name = "Server Handler", fileNameWithoutExtension = "server_handler"),
 		@CustomClass(name = "Server Filter", fileNameWithoutExtension = "server_filter"),
 		@CustomClass(name = "Server WebSocket", fileNameWithoutExtension = "server_websocket")
 })
-@Version(3.00f)
+@Version(4.00f)
 @ShortName("Server")
-@DependsOn(values={"jetty_b4j", "c3p0-0.9.5.2", "c3p0-oracle-thin-extras-0.9.5.2"
-		,"mchange-commons-java-0.2.11", "json"})
+@DependsOn(values={"c3p0-0.9.5.2", "c3p0-oracle-thin-extras-0.9.5.2", "mchange-commons-java-0.2.11"
+		, "json", "jserver/http2-common-11.0.9.jar", 
+		"jserver/http2-server-11.0.9.jar", 
+		"jserver/jetty-alpn-java-server-11.0.9.jar", 
+		"jserver/jetty-alpn-server-11.0.9.jar", 
+		"jserver/jetty-io-11.0.9.jar", 
+		"jserver/jetty-jakarta-servlet-api-5.0.2.jar", 
+		"jserver/jetty-jakarta-websocket-api-2.0.0.jar", 
+		"jserver/jetty-server-11.0.9.jar", 
+		"jserver/jetty-servlet-11.0.9.jar", 
+		"jserver/jetty-servlets-11.0.9.jar", 
+		"jserver/jetty-slf4j-impl-11.0.9.jar", 
+		"jserver/jetty-util-11.0.9.jar", 
+		"jserver/slf4j-api-2.0.0-alpha6.jar", 
+		"jserver/websocket-core-common-11.0.9.jar", 
+		"jserver/websocket-core-server-11.0.9.jar", 
+		"jserver/websocket-jakarta-client-11.0.9.jar", 
+		"jserver/websocket-jakarta-common-11.0.9.jar", 
+		"jserver/websocket-jakarta-server-11.0.9.jar", 
+		"jserver/websocket-jetty-api-11.0.9.jar", 
+		"jserver/websocket-jetty-common-11.0.9.jar", 
+		"jserver/websocket-jetty-server-11.0.9.jar", 
+		"jserver/websocket-servlet-11.0.9.jar", 
+		"jserver/jetty-http-11.0.9.jar", 
+		"jserver/jetty-security-11.0.9.jar", 
+		"jserver/http2-hpack-11.0.9.jar", 
+		"jserver/jetty-webapp-11.0.9.jar"})
 public class ServerWrapper {
 	@Hide
 	public Server server;
@@ -100,8 +122,12 @@ public class ServerWrapper {
 	private int threadsIndexCounter;
 	private java.util.Map<String, String> staticFilesOptions;
 	private java.util.Map<String, String> errorMap;
-	private SslContextFactory sslFactory;
+	private SslContextFactory.Server sslFactory;
 	private int SslPort;
+	@Hide
+	public boolean SniHostCheck = false;
+	@Hide
+	public boolean SniRequired = false;
 
 	private final ArrayList<HandlerData> handlers = new ArrayList<ServerWrapper.HandlerData>();
 	private final ThreadLocal<Integer> threadsIndex = new ThreadLocal<Integer>() {
@@ -145,7 +171,10 @@ public class ServerWrapper {
 		}
 		if (sslFactory != null) {
 			HttpConfiguration https_config = new HttpConfiguration();
-			https_config.addCustomizer(new SecureRequestCustomizer());
+			SecureRequestCustomizer src = new SecureRequestCustomizer();
+			src.setSniHostCheck(SniHostCheck);
+			src.setSniRequired(SniRequired);
+			https_config.addCustomizer(src);
 			HttpConnectionFactory http1 = new HttpConnectionFactory(https_config);
 			SslConnectionFactory ssl = new SslConnectionFactory(sslFactory, http2Enabled ? "alpn": "HTTP/1.1");
 			ServerConnector https;
@@ -158,9 +187,6 @@ public class ServerWrapper {
 			else {
 				https = new ServerConnector(server, ssl, http1);
 			}
-
-
-			sslFactory.setCipherComparator(HTTP2Cipher.COMPARATOR);
 			sslFactory.setUseCipherSuitesOrder(true);
 			https.setPort(SslPort);
 			if (host != null)
@@ -195,13 +221,14 @@ public class ServerWrapper {
 			}
 			context.addFilter(fh, hd.path, EnumSet.of(DispatcherType.REQUEST));
 		}
+		
 		for (HandlerData hd : webSockets) {
 			WebSocketModule.Servlet s = new WebSocketModule.Servlet(Class.forName(fixClassName(hd)), hd.singleThread | debug,
 					hd.maxIdleTime);
 			ServletHolder sh = new ServletHolder(s);
 			context.addServlet(sh, hd.path);
 		}
-
+		JettyWebSocketServletContainerInitializer.configure(context, null);
 		ServletHolder staticHolder = context.addServlet(DefaultServlet.class, "/");
 		if (staticFilesOptions != null)
 			staticHolder.setInitParameters(staticFilesOptions);
@@ -216,10 +243,10 @@ public class ServerWrapper {
 		HandlerCollection handlers = new HandlerCollection();
 		RequestLogHandler log = new RequestLogHandler();
 		File.MakeDir(null, logsFileFolder);
-		NCSARequestLog rl = new NCSARequestLog(File.Combine(logsFileFolder, "b4j-yyyy_mm_dd.request.log"));
-		rl.setRetainDays(retainDays);
-		rl.setExtended(true);
-		rl.setAppend(true);
+		CustomRequestLog rl = new CustomRequestLog(File.Combine(logsFileFolder, "b4j-yyyy_mm_dd.request.log"));
+		RequestLogWriter logWriter = (RequestLogWriter)rl.getWriter();
+		logWriter.setRetainDays(retainDays);
+		logWriter.setAppend(true);
 		log.setRequestLog(rl);
 		handlers.setHandlers(new Handler[]{context,new DefaultHandler(), log});
 		Handler h = handlers;
@@ -251,6 +278,7 @@ public class ServerWrapper {
 
 		}
 	}
+	
 	private String fixClassName(HandlerData hd) {
 		String className = hd.clazz.toLowerCase(BA.cul);
 		if (className.contains(".") == false)
@@ -300,7 +328,7 @@ public class ServerWrapper {
 	public void setGzipEnabled(boolean b) {
 		if (b) {
 			gzipHandler = new GzipHandler();
-			gzipHandler.setIncludedMethods(HttpMethod.POST.toString(), HttpMethod.GET.toString());
+			gzipHandler.setIncludedMethods("POST", "GET");
 		} else {
 			gzipHandler = null;
 		}
@@ -472,7 +500,7 @@ public class ServerWrapper {
 			return new ConcurrentHashMap<Object, Object>();
 		}
 	}
-
+	
 	@Hide
 	public static class HandlerData {
 		public final String clazz;
@@ -492,9 +520,9 @@ public class ServerWrapper {
 	 * Holds the key store configuration. 
 	 */
 	@ShortName("SslConfiguration")
-	public static class SslContextFactoryWrapper extends AbsObjectWrapper<SslContextFactory> {
+	public static class SslContextFactoryWrapper extends AbsObjectWrapper<SslContextFactory.Server> {
 		public void Initialize() {
-			setObject(new SslContextFactory());
+			setObject(new SslContextFactory.Server());
 		}
 		/**
 		 * Sets the path to the keystore file.
@@ -514,15 +542,5 @@ public class ServerWrapper {
 		public void setKeyManagerPassword(String p) {
 			getObject().setKeyManagerPassword(p);
 		}
-		/**
-		 * Sets the SSL provider to Conscrypt. This requires also adding:
-		 * <code>
-		 *#AdditionalJar: conscrypt-openjdk-uber-1.1.2</code>
-		 */
-		public void EnableConscryptProvider() throws Exception{
-			Security.addProvider((Provider) Class.forName("org.conscrypt.OpenSSLProvider").newInstance());
-			getObject().setProvider("Conscrypt");
-		}
-
 	}
 }

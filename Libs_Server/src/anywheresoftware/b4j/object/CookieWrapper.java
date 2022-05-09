@@ -17,10 +17,10 @@
  
  package anywheresoftware.b4j.object;
 
-import javax.servlet.http.Cookie;
 
 import anywheresoftware.b4a.AbsObjectWrapper;
 import anywheresoftware.b4a.BA.ShortName;
+import jakarta.servlet.http.Cookie;
 
 /**
  * Represents a HTTP cookie. You can add cookies to the response with ServletResponse.AddCookie.

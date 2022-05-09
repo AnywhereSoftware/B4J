@@ -1,6 +1,6 @@
 
 /*
- * Copyright 2010 - 2020 Anywhere Software (www.b4x.com)
+ * Copyright 2010 - 2022 Anywhere Software (www.b4x.com)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -58,7 +58,7 @@ import anywheresoftware.b4a.BA.CustomClass;
 /**
  * A class that holds utility methods related to JavaFX apps.
  */
-@Version(9.00f)
+@Version(9.50f)
 @DependsOn(values = {"Json"})
 @ShortName("JFX")
 public class JFX {

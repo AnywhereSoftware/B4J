@@ -47,6 +47,7 @@ import javafx.scene.control.Dialog;
 import javafx.scene.control.Labeled;
 import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.RadioButton;
+import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputControl;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.image.Image;
@@ -98,7 +99,7 @@ import anywheresoftware.b4j.xui.CSSUtils;
 /**
  * A generic view. Any view can be treated as a B4XView.
  */
-@Version(2.10f)
+@Version(2.11f)
 @ShortName("B4XView")
 public class B4XViewWrapper extends AbsObjectWrapper<Object>{
 	public static final int TOUCH_ACTION_DOWN = 0;
@@ -435,7 +436,7 @@ public class B4XViewWrapper extends AbsObjectWrapper<Object>{
 	 *In B4i the vertical alignment has no effect.
 	 * Supported types:
 	 * B4A - EditText, Label, Button, CheckBox, RadioButton, ToggleButton
-	 * B4J - Label, Button, Checkbox, RadioButton, ToggleButton
+	 * B4J - Label, Button, Checkbox, RadioButton, ToggleButton, TextField
 	 */
 	public void SetTextAlignment(String Vertical, String Horizontal) {
 		String s = Vertical + "_" + Horizontal;
@@ -444,6 +445,8 @@ public class B4XViewWrapper extends AbsObjectWrapper<Object>{
 		Node n = getNodeObject();
 		if (n instanceof Labeled)
 			((Labeled)n).setAlignment(Enum.valueOf(Pos.class, s));
+		else if (n instanceof TextField)
+			((TextField)n).setAlignment(Enum.valueOf(Pos.class, s));
 		else
 			throw typeDoesNotMatch();
 	}
