@@ -57,7 +57,7 @@ public class MongoCollectionWrapper extends AbsObjectWrapper<MongoCollection<MyM
 	 *Collection.CreateIndex(CreateMap("rank": 1))</code>
 	 */
 	public String CreateIndex (Map Keys) {
-		return getObject().createIndex(MongoUtils.MapToBson(Keys.getObject()));
+		return getObject().createIndex(MongoUtils.MapToBson((MyMap) Keys.getObject()));
 	}
 	/**
 	 * Finds matching documents in the collection.
@@ -77,7 +77,7 @@ public class MongoCollectionWrapper extends AbsObjectWrapper<MongoCollection<MyM
 	 *Limit - Maximum number of documents to return.
 	 */
 	public List Find2(Map Filter, List Projection, Map Sort, int Skip, int Limit) {
-		FindIterable<MyMap> ff = Filter.IsInitialized() ? getObject().find(MongoUtils.MapToBson(Filter.getObject())) : getObject().find();
+		FindIterable<MyMap> ff = Filter.IsInitialized() ? getObject().find(MongoUtils.MapToBson((MyMap) Filter.getObject())) : getObject().find();
 		if (Projection.IsInitialized()) {
 			boolean idFound = false;
 			HashMap<String, Object> fields = new HashMap<String, Object>();
@@ -91,7 +91,7 @@ public class MongoCollectionWrapper extends AbsObjectWrapper<MongoCollection<MyM
 			ff = ff.projection(new Document(fields));
 		}
 		if (Sort.IsInitialized())
-			ff = ff.sort(MongoUtils.MapToBson(Sort.getObject()));
+			ff = ff.sort(MongoUtils.MapToBson((MyMap) Sort.getObject()));
 		if (Skip > 0)
 			ff = ff.skip(Skip);
 		if (Limit > 0)
@@ -101,7 +101,6 @@ public class MongoCollectionWrapper extends AbsObjectWrapper<MongoCollection<MyM
 	/**
 	 * Executes an aggregation pipeline. Each element in the list is a Map that defines a single step.
 	 */
-	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public List Aggregate(List Pipeline) {
 		ArrayList<Bson> steps = new ArrayList<Bson>();
 		for (Object o : Pipeline.getObject())
@@ -125,8 +124,8 @@ public class MongoCollectionWrapper extends AbsObjectWrapper<MongoCollection<MyM
 	 *Collection.Update(CreateMap("_id": "some_id"), CreateMap("$set": CreateMap("score": 3)))</code>
 	 */
 	public UpdateResultWrapper Update(Map Filter, Map Update) {
-		return (UpdateResultWrapper)AbsObjectWrapper.ConvertToWrapper(new UpdateResultWrapper(), getObject().updateMany(MongoUtils.MapToBson(Filter.getObject()),
-				MongoUtils.MapToBson(Update.getObject())));
+		return (UpdateResultWrapper)AbsObjectWrapper.ConvertToWrapper(new UpdateResultWrapper(), getObject().updateMany(MongoUtils.MapToBson((MyMap) Filter.getObject()),
+				MongoUtils.MapToBson((MyMap) Update.getObject())));
 	}
 	/**
 	 * Replaces the first matching document.
@@ -137,14 +136,14 @@ public class MongoCollectionWrapper extends AbsObjectWrapper<MongoCollection<MyM
 	public UpdateResultWrapper Replace(Map Filter, Map Document, boolean Upsert) {
 		UpdateOptions opt = new UpdateOptions();
 		opt.upsert(Upsert);
-		return (UpdateResultWrapper)AbsObjectWrapper.ConvertToWrapper(new UpdateResultWrapper(), getObject().replaceOne(MongoUtils.MapToBson(Filter.getObject()),
-				Document.getObject(), opt));
+		return (UpdateResultWrapper)AbsObjectWrapper.ConvertToWrapper(new UpdateResultWrapper(), getObject().replaceOne(MongoUtils.MapToBson((MyMap) Filter.getObject()),
+				(MyMap) Document.getObject(), opt));
 	}
 	/**
 	 * Deletes the documents matching the filter. Returns the number of documents deleted.
 	 */
 	public long Delete(Map Filter) {
-		return getObject().deleteMany(MongoUtils.MapToBson(Filter.getObject())).getDeletedCount();
+		return getObject().deleteMany(MongoUtils.MapToBson((MyMap) Filter.getObject())).getDeletedCount();
 	}
 
 

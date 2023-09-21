@@ -58,7 +58,7 @@ public class MongoDatabaseWrapper extends AbsObjectWrapper<MongoDatabase>{
 	 * Runs a database command.
 	 */
 	public Map RunCommand(Map Command) {
-		return (Map)AbsObjectWrapper.ConvertToWrapper(new Map(), getObject().runCommand(MongoUtils.MapToBson(Command.getObject()), MyMap.class));
+		return (Map)AbsObjectWrapper.ConvertToWrapper(new Map(), getObject().runCommand(MongoUtils.MapToBson((MyMap) Command.getObject()), MyMap.class));
 	}
 	
 }

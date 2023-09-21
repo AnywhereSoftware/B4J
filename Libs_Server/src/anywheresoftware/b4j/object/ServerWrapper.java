@@ -69,7 +69,7 @@ import jakarta.servlet.Filter;
 		@CustomClass(name = "Server Filter", fileNameWithoutExtension = "server_filter"),
 		@CustomClass(name = "Server WebSocket", fileNameWithoutExtension = "server_websocket")
 })
-@Version(4.00f)
+@Version(4.01f)
 @ShortName("Server")
 @DependsOn(values={"c3p0-0.9.5.2", "c3p0-oracle-thin-extras-0.9.5.2", "mchange-commons-java-0.2.11"
 		, "json", "jserver/http2-common-11.0.9.jar", 
@@ -128,6 +128,7 @@ public class ServerWrapper {
 	public boolean SniHostCheck = false;
 	@Hide
 	public boolean SniRequired = false;
+	private String customLogFormat = CustomRequestLog.EXTENDED_NCSA_FORMAT;
 
 	private final ArrayList<HandlerData> handlers = new ArrayList<ServerWrapper.HandlerData>();
 	private final ThreadLocal<Integer> threadsIndex = new ThreadLocal<Integer>() {
@@ -178,10 +179,17 @@ public class ServerWrapper {
 			HttpConnectionFactory http1 = new HttpConnectionFactory(https_config);
 			SslConnectionFactory ssl = new SslConnectionFactory(sslFactory, http2Enabled ? "alpn": "HTTP/1.1");
 			ServerConnector https;
+			
 			if (http2Enabled) {
 				HTTP2ServerConnectionFactory http2 = new HTTP2ServerConnectionFactory(https_config);
 				ALPNServerConnectionFactory alpn = new ALPNServerConnectionFactory();
 				alpn.setDefaultProtocol(http1.getProtocol());
+//				if (draftHttp3PortWillBeChanged > 0) {
+//					HTTP3ServerConnector h3 = new HTTP3ServerConnector(server, sslFactory, new HTTP3ServerConnectionFactory(https_config));
+//					h3.setPort(draftHttp3PortWillBeChanged);
+//					server.addConnector(h3);
+//					System.out.println("adding h3 connector");
+//				}
 				https = new ServerConnector(server, ssl, alpn, http2, http1);
 			}
 			else {
@@ -196,7 +204,8 @@ public class ServerWrapper {
 		else {
 			connectors = new Connector[] {http};
 		}
-		server.setConnectors(connectors);
+		for (Connector connector : connectors)
+			server.addConnector(connector);
 		context.setResourceBase(staticFiles);
 		final boolean debug = BA.isShellModeRuntimeCheck(ba);
 		for (HandlerData hd : handlers) {
@@ -243,7 +252,7 @@ public class ServerWrapper {
 		HandlerCollection handlers = new HandlerCollection();
 		RequestLogHandler log = new RequestLogHandler();
 		File.MakeDir(null, logsFileFolder);
-		CustomRequestLog rl = new CustomRequestLog(File.Combine(logsFileFolder, "b4j-yyyy_mm_dd.request.log"));
+		CustomRequestLog rl = new CustomRequestLog(File.Combine(logsFileFolder, "b4j-yyyy_mm_dd.request.log"), customLogFormat);
 		RequestLogWriter logWriter = (RequestLogWriter)rl.getWriter();
 		logWriter.setRetainDays(retainDays);
 		logWriter.setAppend(true);
@@ -435,7 +444,7 @@ public class ServerWrapper {
 		copyMap(Options, staticFilesOptions, true);
 	}
 	private void copyMap(Map m, java.util.Map<String, String> o, boolean integerNumbersOnly) {
-		for (Entry<Object, Object> e : m.getObject().entrySet()) {
+		for (Entry<Object, Object> e : ((MyMap)m.getObject()).entrySet()) {
 			String value;
 			if (integerNumbersOnly && e.getValue() instanceof Number) {
 				value = String.valueOf(((Number)e.getValue()).longValue());
@@ -444,6 +453,16 @@ public class ServerWrapper {
 				value = String.valueOf(e.getValue());
 			o.put(String.valueOf(e.getKey()), value);
 		}
+	}
+	/**
+	 * Gets or sets the log format.
+	 *The format is documented <link>here|https://www.eclipse.org/jetty/javadoc/jetty-11/org/eclipse/jetty/server/CustomRequestLog.html</link>.
+	 */
+	public String getLogFormat() {
+		return customLogFormat;
+	}
+	public void setLogFormat(String s) {
+		customLogFormat = s;
 	}
 	/**
 	 * Configures the SSL connector and sets the port used for https connections.

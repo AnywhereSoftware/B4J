@@ -25,17 +25,10 @@ import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javafx.scene.Node;
-import javafx.scene.Scene;
-import javafx.scene.control.Labeled;
-import javafx.scene.control.TextInputControl;
-import javafx.scene.layout.Pane;
-import javafx.stage.Screen;
 import anywheresoftware.b4a.AbsObjectWrapper;
 import anywheresoftware.b4a.BA;
 import anywheresoftware.b4a.BA.Hide;
@@ -47,6 +40,12 @@ import anywheresoftware.b4a.objects.streams.File;
 import anywheresoftware.b4a.objects.streams.File.InputStreamWrapper;
 import anywheresoftware.b4j.objects.ButtonWrapper.RadioButtonWrapper;
 import anywheresoftware.b4j.objects.NodeWrapper.ConcreteNodeWrapper;
+import javafx.scene.Node;
+import javafx.scene.Scene;
+import javafx.scene.control.Labeled;
+import javafx.scene.control.TextInputControl;
+import javafx.scene.layout.Pane;
+import javafx.stage.Screen;
 
 @Hide
 public class LayoutBuilder {
@@ -102,7 +101,7 @@ public class LayoutBuilder {
 		if ((Boolean)layoutData.props.get("handleResizeEvent") == true)
 			AbsObjectWrapper.getExtraTags(parent).put("layoutdata", layoutData);
 		layoutData.designerScriptName = file.toLowerCase(BA.cul);
-		runScripts(parent, layoutData, chosenIndex, pw, ph);
+		runScripts(ba, parent, layoutData, chosenIndex, pw, ph);
 		if (viewsToSendInShellMode != null)
 			ba.raiseEvent(null, "SEND_VIEWS_AFTER_LAYOUT", viewsToSendInShellMode);
 		
@@ -249,7 +248,7 @@ public class LayoutBuilder {
 		}
 		return customClass;
 	}
-	private static void runScripts(Pane parent, LayoutData ld, int chosenIndex, int w, int h) throws IllegalArgumentException, IllegalAccessException {
+	private static void runScripts(BA ba, Pane parent, LayoutData ld, int chosenIndex, int w, int h) throws IllegalArgumentException, IllegalAccessException {
 		lastScene = new WeakReference<Scene>(parent.getScene());
 		StringBuilder sb = new StringBuilder();
 		sb.append("LS_");
@@ -262,17 +261,14 @@ public class LayoutBuilder {
 		}
 		try {
 			Class<?> c = Class.forName(BA.packageName + ".designerscripts." + sb.toString());
-			Method m; 
+			LayoutValues variant = ld.variants.get(chosenIndex);
 			try {
 				//global script
-				m = c.getMethod(variantToMethod(null), LayoutData.class, int.class, int.class, float.class);
-
-				m.invoke(null, ld, w, h, 1.0f);
+				runScriptMethod(c, variantToMethod(null), variant, ba, parent, ld, w, h);
 			} catch (NoSuchMethodException e) {
 				//do nothing
 			}
-			m = c.getMethod(variantToMethod(ld.variants.get(chosenIndex)), LayoutData.class, int.class, int.class, float.class);
-			m.invoke(null, ld, w, h, 1.0f);
+			runScriptMethod(c, variantToMethod(variant),variant, ba, parent, ld, w, h);
 		} catch (ClassNotFoundException e) {
 		} catch (SecurityException e) {
 			e.printStackTrace();
@@ -281,7 +277,11 @@ public class LayoutBuilder {
 			throw new RuntimeException(e.getCause());
 		}
 
-
+	}
+	private static void runScriptMethod(Class<?> c, String methodName, LayoutValues lv, BA ba, Pane parent, LayoutData ld, int w, int h) throws NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+		Method m; 
+		m = c.getMethod(methodName, BA.class, Node.class, LayoutValues.class, LayoutData.class, int.class, int.class, float.class);
+		m.invoke(null, ba, parent, lv, ld, w, h, 1.0f);
 	}
 	private static String variantToMethod(LayoutValues lv)
 	{
@@ -323,8 +323,9 @@ public class LayoutBuilder {
 		try {
 			int chosenIndex = findBestVariant(parent.getScene());
 			int[] pwh = PaneWrapper.getDesignerWidthAndHeight(parent);
+			layoutData.firstRun = false;
 			loadLayoutHeader(layoutData.props, ba, parent, true, "variant" + chosenIndex, pwh[0], pwh[1], RESIZE, 0, 1.0f);
-			runScripts(parent, layoutData, chosenIndex, pwh[0], pwh[1]);
+			runScripts(ba, parent, layoutData, chosenIndex, pwh[0], pwh[1]);
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
@@ -343,6 +344,7 @@ public class LayoutBuilder {
 		public Map<String, Object> props;
 		public Map<String, WeakReference<Node>> viewsMap = new HashMap<String, WeakReference<Node>>();
 		public String designerScriptName;
+		public boolean firstRun = true;
 		public LayoutData() {
 
 		}

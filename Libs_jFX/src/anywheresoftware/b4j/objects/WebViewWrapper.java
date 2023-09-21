@@ -117,7 +117,7 @@ public class WebViewWrapper extends NodeWrapper<WebView>{
 		if (vg == null)  {
 			vg = NodeWrapper.buildNativeView(WebView.class, props, designer);
 			if (designer) {
-				vg.getEngine().load("http://www.b4x.com");
+				vg.getEngine().load("https://www.example.com");
 			}
 		}
 		return NodeWrapper.build(vg, props, designer);

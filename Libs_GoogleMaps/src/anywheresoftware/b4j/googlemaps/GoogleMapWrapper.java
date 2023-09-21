@@ -17,6 +17,7 @@
  
  package anywheresoftware.b4j.googlemaps;
 
+
 import com.lynden.gmapsfx.GoogleMapView;
 import com.lynden.gmapsfx.MapComponentInitializedListener;
 import com.lynden.gmapsfx.javascript.event.MapStateEventType;
@@ -56,7 +57,6 @@ import netscape.javascript.JSObject;
  *Uses GoogleMap JavaScript V3 API to show a map inside WebView.
  *GoogleMap.AsPane returns a Pane which should be added to the nodes tree.
  *The map is only ready after Ready event is raised.
- *Requires Java 8+.
  */
 @ShortName("GoogleMap")
 @Events(values={
@@ -68,7 +68,7 @@ import netscape.javascript.JSObject;
 		"PolygonClick (SelectedPolygon As MapPolygon)",
 		"PolylineClick (SelectedPolyline As MapPolyline)"
 })
-@Version(1.82f)
+@Version(2.00f)
 public class GoogleMapWrapper
 {
 	@Hide
@@ -92,7 +92,7 @@ public class GoogleMapWrapper
 	 *Example: <code>map.Initialize2("map", Null, "AIzattttttt_tttttttthGujrM")</code>
 	 */
 	public void Initialize2(BA ba, String EventName, MapOptionsWrapper Options, String ApiKey) {
-		mapView = new GoogleMapView(null, ApiKey);
+		mapView = new GoogleMapView(null, null, ApiKey, false);
 		this.eventName = EventName.toLowerCase(BA.cul);
 		this.ba = ba;
 		mapView.addMapInializedListener(new MapComponentInitializedListener() {
@@ -109,7 +109,7 @@ public class GoogleMapWrapper
 					.mapTypeControl(Options.MapTypeControl).scrollWheel(Options.ScrollWheel);
 				}
 				
-				mapOptions.jsObject.setMember("fullscreenControl", false);
+				//mapOptions.jsObject.setMember("fullscreenControl", false);
 				map = mapView.createMap(mapOptions);
 				mapOptions.mapType(MapTypeIdEnum.SATELLITE);
 				if (ba.subExists(eventName + "_camerachange")) {

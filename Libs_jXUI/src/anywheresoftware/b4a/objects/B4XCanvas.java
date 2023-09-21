@@ -18,16 +18,16 @@
  package anywheresoftware.b4a.objects;
 
 
+
 import java.lang.reflect.Field;
 
-import javafx.geometry.Bounds;
-import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.image.Image;
-import javafx.scene.paint.Paint;
-import javafx.scene.shape.StrokeLineCap;
-import javafx.scene.text.Text;
-import javafx.scene.text.TextAlignment;
-import javafx.scene.text.TextBoundsType;
+
+import com.sun.javafx.geom.Arc2D;
+import com.sun.javafx.geom.Ellipse2D;
+import com.sun.javafx.geom.Path2D;
+import com.sun.javafx.geom.RoundRectangle2D;
+import com.sun.javafx.geom.transform.BaseTransform;
+
 import anywheresoftware.b4a.AbsObjectWrapper;
 import anywheresoftware.b4a.BA;
 import anywheresoftware.b4a.BA.Hide;
@@ -36,12 +36,14 @@ import anywheresoftware.b4a.objects.B4XViewWrapper.B4XBitmapWrapper;
 import anywheresoftware.b4a.objects.B4XViewWrapper.B4XFont;
 import anywheresoftware.b4j.objects.CanvasWrapper;
 import anywheresoftware.b4j.objects.JFX.Colors;
-
-import com.sun.javafx.geom.Arc2D;
-import com.sun.javafx.geom.Ellipse2D;
-import com.sun.javafx.geom.Path2D;
-import com.sun.javafx.geom.RoundRectangle2D;
-import com.sun.javafx.geom.transform.BaseTransform;
+import javafx.geometry.Bounds;
+import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.image.Image;
+import javafx.scene.paint.Paint;
+import javafx.scene.shape.StrokeLineCap;
+import javafx.scene.text.Text;
+import javafx.scene.text.TextAlignment;
+import javafx.scene.text.TextBoundsType;
 
 /**
  * A cross platform canvas.

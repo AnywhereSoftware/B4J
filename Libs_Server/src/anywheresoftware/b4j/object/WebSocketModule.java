@@ -21,6 +21,7 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.net.SocketTimeoutException;
+import java.nio.channels.ClosedChannelException;
 import java.time.Duration;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -112,7 +113,7 @@ public class WebSocketModule {
 		@Override
 		public void onWebSocketError(Throwable cause) {
 			super.onWebSocketError(cause);
-			if (cause instanceof SocketTimeoutException || cause instanceof EOFException)
+			if (cause instanceof SocketTimeoutException || cause instanceof EOFException ||cause instanceof ClosedChannelException)
 				System.err.println("onWebSocketError: " + cause.getMessage());
 			else
 				cause.printStackTrace();

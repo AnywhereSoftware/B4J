@@ -71,6 +71,7 @@ import org.imgscalr.Scalr.Mode;
 import org.imgscalr.Scalr.Rotation;
 
 import anywheresoftware.b4a.AbsObjectWrapper;
+import anywheresoftware.b4a.B4AClass;
 import anywheresoftware.b4a.BA;
 import anywheresoftware.b4a.BA.CustomClass;
 import anywheresoftware.b4a.BA.CustomClasses;
@@ -82,6 +83,7 @@ import anywheresoftware.b4a.BA.Version;
 import anywheresoftware.b4a.ObjectWrapper;
 import anywheresoftware.b4a.keywords.Common;
 import anywheresoftware.b4a.objects.streams.File;
+import anywheresoftware.b4j.objects.DesignerArgs;
 import anywheresoftware.b4j.objects.ImageViewWrapper;
 import anywheresoftware.b4j.objects.ImageViewWrapper.ImageWrapper;
 import anywheresoftware.b4j.objects.JFX;
@@ -99,7 +101,7 @@ import anywheresoftware.b4j.xui.CSSUtils;
 /**
  * A generic view. Any view can be treated as a B4XView.
  */
-@Version(2.11f)
+@Version(2.20f)
 @ShortName("B4XView")
 public class B4XViewWrapper extends AbsObjectWrapper<Object>{
 	public static final int TOUCH_ACTION_DOWN = 0;
@@ -220,6 +222,23 @@ public class B4XViewWrapper extends AbsObjectWrapper<Object>{
 		else {
 			NodeWrapper.SetLayout(n, new double[] {Left, Top, Width, Height});
 		}
+	}
+	/**
+	 * Gets or sets the view's alpha level: 0 - transparent, 1 (default) fully opaque.
+	 */
+	public void setAlpha(float alpha) {
+		asViewWrapper().setAlpha(alpha);
+	}
+	public float getAlpha() {
+		return (float) asViewWrapper().getAlpha();
+	}
+	/**
+	 * Animates the view's alpha level.
+	 *Duration - Animation duration in milliseconds.
+	 *Alpha - Value between 0 to 1 (transparent to opaque).
+	 */
+	public void SetAlphaAnimated(int Duration, float Alpha) {
+		asViewWrapper().SetAlphaAnimated(Duration, Alpha);
 	}
 	/**
 	 * Fades in or fades out the view.
@@ -1182,6 +1201,22 @@ public class B4XViewWrapper extends AbsObjectWrapper<Object>{
 		 */
 		public static String FileUri(String Dir, String FileName) {
 			return File.GetUri(Dir, FileName);
+		}
+		/**
+		 * Registers a designer script class. 
+		 */
+		public static void RegisterDesignerClass(Object ClassInstance) {
+			String clsName = ClassInstance.getClass().getName();
+			if (clsName.startsWith(BA.packageName) == false)
+				throw new RuntimeException("invalid class");
+			
+			DesignerArgs.targetsCache.put(clsName.substring(BA.packageName.length()+ 1), (B4AClass)ClassInstance);
+		}
+		/**
+		 * Gets the registered designer class instance. Returns Null if does not exist.
+		 */
+		public static Object GetRegisteredDesignerClass(String Module) {
+			return DesignerArgs.targetsCache.get(Module.toLowerCase(BA.cul));
 		}
 		
 	}

@@ -40,8 +40,8 @@ import com.mongodb.MongoClientURI;
  * A MongoDB client. Implemented as a connection pool. A single instance can be used by multiple handlers.
  *<link>MongoDB manual|https://docs.mongodb.com/manual/</link> 
  */
-@Version(0.9f)
-@DependsOn(values={"mongodb-driver-3.3.0", "mongodb-driver-core-3.3.0", "bson-3.3.0"})
+@Version(1.0f)
+@DependsOn(values={"mongo-java-driver-3.12.11"})
 @ShortName("MongoClient")
 public class MongoClientWrapper extends AbsObjectWrapper<MongoClient>{
 	/**

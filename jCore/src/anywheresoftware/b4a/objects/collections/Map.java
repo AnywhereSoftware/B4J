@@ -17,15 +17,13 @@
  
  package anywheresoftware.b4a.objects.collections;
 
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
-import java.util.Set;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import anywheresoftware.b4a.AbsObjectWrapper;
-import anywheresoftware.b4a.BA;
 import anywheresoftware.b4a.BA.B4aDebuggable;
 import anywheresoftware.b4a.BA.Hide;
 import anywheresoftware.b4a.BA.IterableList;
@@ -46,8 +44,9 @@ import anywheresoftware.b4a.BA.ShortName;
  *Maps are very useful for storing applications settings. 
  *You can save and load maps with File.WriteMap and File.ReadMap.
  */
+@SuppressWarnings("rawtypes")
 @ShortName("Map")
-public class Map extends AbsObjectWrapper<Map.MyMap> implements B4aDebuggable{
+public class Map extends AbsObjectWrapper<java.util.Map> implements B4aDebuggable{
 
 	/**
 	 *Initializes the object.
@@ -108,7 +107,11 @@ public class Map extends AbsObjectWrapper<Map.MyMap> implements B4aDebuggable{
 	 *Next</code>
 	 */
 	public Object GetKeyAt(int Index) {
-		return getObject().getKey(Index);
+		java.util.Map<Object, Object> m = getObject();
+		if (m instanceof MyMap)
+			return ((MyMap)m).getKey(Index);
+		else
+			throw new RuntimeException("method not supported. Use For Each instead.");
 	}
 	/**
 	 *<b>This method is deprecated. Use For Each to iterate over the values or use B4XOrderedMap.</b>
@@ -122,7 +125,11 @@ public class Map extends AbsObjectWrapper<Map.MyMap> implements B4aDebuggable{
 	 *Next</code>
 	 */
 	public Object GetValueAt(int Index) {
-		return getObject().getValue(Index);
+		java.util.Map<Object, Object> m = getObject();
+		if (m instanceof MyMap)
+			return ((MyMap)m).getValue(Index);
+		else
+			throw new RuntimeException("method not supported. Use For Each instead.");
 	}
 	/**
 	 * Returns the number of items stored in the map.
@@ -162,9 +169,12 @@ public class Map extends AbsObjectWrapper<Map.MyMap> implements B4aDebuggable{
 	}
 	@Hide
 	public class IterableMap implements IterableList {
-		private final boolean keys;
+		private final Iterator iterator;
 		public IterableMap(boolean keys) {
-			this.keys = keys;
+			if (keys)
+				iterator = getObject().keySet().iterator();
+			else
+				iterator = getObject().values().iterator();
 		}
 		@Override
 		public int getSize() {
@@ -173,13 +183,10 @@ public class Map extends AbsObjectWrapper<Map.MyMap> implements B4aDebuggable{
 
 		@Override
 		public Object Get(int index) {
-			if (keys)
-				return Map.this.GetKeyAt(index);
-			else
-				return Map.this.GetValueAt(index);
+			return iterator.next();
 		}
-		
 	}
+	
 	
 	@Hide
 	@Override
@@ -188,7 +195,7 @@ public class Map extends AbsObjectWrapper<Map.MyMap> implements B4aDebuggable{
 		res[0] = "Size";
 		res[1] = getSize();
 		int i = 2;
-		for (Entry<Object, Object> e : getObject().entrySet()) {
+		for (Entry<Object, Object> e : ((java.util.Map<Object, Object>)getObject()).entrySet()) {
 			if (i >= res.length - 1)
 				break;
 			res[i] = String.valueOf(e.getKey());

@@ -33,7 +33,6 @@ public class MongoUtils {
 		}
 		return l1;
 	}
-	
 	public static Bson MapToBson(MyMap map) {
 		if (map == null)
 			return null;

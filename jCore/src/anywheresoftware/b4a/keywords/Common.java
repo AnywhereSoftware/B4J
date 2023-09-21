@@ -56,7 +56,7 @@ import anywheresoftware.b4a.objects.streams.File;
 /**
  * These are the internal keywords.
  */
-@Version(9.50f)
+@Version(10.00f)
 public class Common {
 
 	@Hide
@@ -191,11 +191,10 @@ public class Common {
 	}
 	/**
 	 *Returns the object that raised the event.
-	 *Only valid while inside the event sub.
+	 *Only valid while inside the event sub and before calls to Sleep or Wait For.
 	 *Example:<code>
 	 *Sub Button_Click
-	 * Dim b As Button
-	 * b = Sender
+	 * Dim b As B4XView = Sender
 	 * b.Text = "I've been clicked"
 	 *End Sub</code>
 	 */

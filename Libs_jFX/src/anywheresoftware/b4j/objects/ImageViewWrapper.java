@@ -198,6 +198,7 @@ public class ImageViewWrapper extends NodeWrapper<ImageView>{
 			iw.setOutput(ImageIO.createImageOutputStream(Out));
 			iw.write(null, new IIOImage(SwingFXUtils.fromFXImage(getObject(), null), null, null),
 					param);
+			iw.dispose();
 
 		}
 	}

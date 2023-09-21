@@ -41,7 +41,7 @@ import anywheresoftware.b4a.BA.Version;
 @ShortName("WebSocketClient")
 @Events(values={"Connected", "Closed (Reason As String)", "TextMessage (Message As String)", "BinaryMessage (Data() As Byte)"})
 @DependsOn(values={"jetty_b4j"})
-@Version(1.11f)
+@Version(1.13f)
 public class WebSocketClientWrapper {
 	private BA ba;
 	private String eventName;
@@ -117,13 +117,25 @@ public class WebSocketClientWrapper {
 		}
 	}
 	/**
-	 * Sends a text message.
+	 * <b>Do not use this method.</b> Use SendTextAsync instead.
 	 */
 	public void SendText(String Text) throws IOException, InterruptedException, ExecutionException {
 		session.get().getRemote().sendString(Text);
 	}
 	/**
-	 * Sends a binary message.
+	 * Asynchronously sends a text message.
+	 */
+	public void SendTextAsync(String Text) throws InterruptedException, ExecutionException {
+		session.get().getRemote().sendString(Text, null);
+	}
+	/**
+	 * Asynchronously sends a binary message;
+	 */
+	public void SendBinaryAsync(byte[] Data) throws InterruptedException, ExecutionException {
+		session.get().getRemote().sendBytes(ByteBuffer.wrap(Data), null);
+	}
+	/**
+	 * <b>Do not use this method.</b> Use SendBinaryAsync instead.
 	 */
 	public void SendBinary(byte[] Data) throws IOException, InterruptedException, ExecutionException {
 		session.get().getRemote().sendBytes(ByteBuffer.wrap(Data));
