@@ -63,8 +63,8 @@ import org.w3c.dom.Text;
  */
 public class GoogleMapView extends AnchorPane {
 
-    protected static final String GOOGLE_MAPS_API_LINK = "https://maps.googleapis.com/maps/api/js?v=3.exp";
-    protected static final String GOOGLE_MAPS_API_VERSION = "3.exp";
+    protected static final String GOOGLE_MAPS_API_LINK = "https://maps.googleapis.com/maps/api/js?v=3.56";
+    protected static final String GOOGLE_MAPS_API_VERSION = "3.56";
 
     private boolean usingCustomHtml;
 

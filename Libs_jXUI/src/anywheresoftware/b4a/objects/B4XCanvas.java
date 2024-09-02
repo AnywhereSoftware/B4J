@@ -311,7 +311,7 @@ public class B4XCanvas {
 		public float getWidth() {
 			return right - left;
 		}
-		public void setWidth(int w) {
+		public void setWidth(float w) {
 			right = left + w;
 		}
 		/**

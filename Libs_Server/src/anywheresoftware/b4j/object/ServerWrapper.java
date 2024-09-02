@@ -69,7 +69,7 @@ import jakarta.servlet.Filter;
 		@CustomClass(name = "Server Filter", fileNameWithoutExtension = "server_filter"),
 		@CustomClass(name = "Server WebSocket", fileNameWithoutExtension = "server_websocket")
 })
-@Version(4.01f)
+@Version(4.02f)
 @ShortName("Server")
 @DependsOn(values={"c3p0-0.9.5.2", "c3p0-oracle-thin-extras-0.9.5.2", "mchange-commons-java-0.2.11"
 		, "json", "jserver/http2-common-11.0.9.jar", 
@@ -107,6 +107,7 @@ public class ServerWrapper {
 	private String staticFiles = File.Combine(File.getDirApp(), "www");
 	private int retainDays = 30;
 	private int port = 8080;
+	private String logsTimezone = "GMT";
 	private String logsFileFolder = File.Combine(File.getDirApp(), "logs");
 	private ArrayList<HandlerData> webSockets = new ArrayList<HandlerData>();
 	@Hide
@@ -128,6 +129,8 @@ public class ServerWrapper {
 	public boolean SniHostCheck = false;
 	@Hide
 	public boolean SniRequired = false;
+	@Hide
+	public boolean MutableHandleCollection = false;
 	private String customLogFormat = CustomRequestLog.EXTENDED_NCSA_FORMAT;
 
 	private final ArrayList<HandlerData> handlers = new ArrayList<ServerWrapper.HandlerData>();
@@ -249,12 +252,13 @@ public class ServerWrapper {
 			err.setErrorPages(errorMap);
 			context.setErrorHandler(err);
 		}
-		HandlerCollection handlers = new HandlerCollection();
+		HandlerCollection handlers = new HandlerCollection(MutableHandleCollection);
 		RequestLogHandler log = new RequestLogHandler();
 		File.MakeDir(null, logsFileFolder);
 		CustomRequestLog rl = new CustomRequestLog(File.Combine(logsFileFolder, "b4j-yyyy_mm_dd.request.log"), customLogFormat);
 		RequestLogWriter logWriter = (RequestLogWriter)rl.getWriter();
 		logWriter.setRetainDays(retainDays);
+		logWriter.setTimeZone(logsTimezone);
 		logWriter.setAppend(true);
 		log.setRequestLog(rl);
 		handlers.setHandlers(new Handler[]{context,new DefaultHandler(), log});
@@ -360,6 +364,16 @@ public class ServerWrapper {
 	}
 	public int getLogsRetainDays() {
 		return retainDays;
+	}
+	/**
+	 * Gets or sets the rotated logs timezone id. Default value is "GMT". This affects the rollover time.
+	 *The output timezone can be set in the LogsFormat pattern.
+	 */
+	public void setLogsTimezone(String id) {
+		logsTimezone = id;
+	}
+	public String getLogsTimezone() {
+		return logsTimezone;
 	}
 	/**
 	 * Each thread is mapped to a specific index. This property returns the current thread index. 

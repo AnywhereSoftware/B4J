@@ -398,7 +398,7 @@ public class File {
 		return senderFilter;
 	}
 	/**
-	 * Asynchronous version of ListFiles. Should be used with Wait For.
+	 * Asynchronous version of ListFiles. Should be used with Wait For. Note that the list returned is read-only.
 	 *Example:<code>
 	 *Wait For (File.ListFilesAsync(Dir)) Complete (Success As Boolean, Files As List)</code>
 	 */

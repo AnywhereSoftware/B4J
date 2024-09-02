@@ -101,7 +101,7 @@ import anywheresoftware.b4j.xui.CSSUtils;
 /**
  * A generic view. Any view can be treated as a B4XView.
  */
-@Version(2.20f)
+@Version(2.31f)
 @ShortName("B4XView")
 public class B4XViewWrapper extends AbsObjectWrapper<Object>{
 	public static final int TOUCH_ACTION_DOWN = 0;

@@ -14,8 +14,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
- package anywhersoftware.b4j.objects;
+
+package anywhersoftware.b4j.objects;
 
 import java.io.IOException;
 import java.net.URI;
@@ -40,8 +40,21 @@ import anywheresoftware.b4a.BA.Version;
  */
 @ShortName("WebSocketClient")
 @Events(values={"Connected", "Closed (Reason As String)", "TextMessage (Message As String)", "BinaryMessage (Data() As Byte)"})
-@DependsOn(values={"jetty_b4j"})
-@Version(1.13f)
+@DependsOn(values={
+		"jserver/jetty-util-11.0.9.jar", 
+		"jserver/websocket-core-common-11.0.9.jar", 
+		"jserver/websocket-jetty-api-11.0.9.jar", 
+		"jserver/websocket-jetty-common-11.0.9.jar", 
+		"jserver/websocket-jetty-client-11.0.9.jar", 
+		"jserver/jetty-security-11.0.9.jar", 
+		"jserver/jetty-io-11.0.9.jar", 
+		"jserver/jetty-http-11.0.9.jar", 
+		"jserver/slf4j-api-2.0.0-alpha6.jar",		
+		"jserver/websocket-core-client-11.0.9.jar",		
+		"jserver/jetty-client-11.0.9.jar",		
+		"jserver/jetty-slf4j-impl-11.0.9.jar"		
+})
+@Version(2.00f)
 public class WebSocketClientWrapper {
 	private BA ba;
 	private String eventName;
@@ -68,7 +81,7 @@ public class WebSocketClientWrapper {
 	 */
 	public void Connect2(final String Url, final ClientUpgradeRequest UpgradeRequest) {
 		Runnable r = new Runnable() {
-			
+
 			@Override
 			public void run() {
 				try {
@@ -76,7 +89,7 @@ public class WebSocketClientWrapper {
 					URI echoUri = new URI(Url);
 					session = wsc.connect(new WSHandler(), echoUri, UpgradeRequest);
 				} catch (Exception e) {
-					
+
 				}
 			}
 		};
@@ -98,22 +111,27 @@ public class WebSocketClientWrapper {
 	 * Closes the connection.
 	 */
 	public void Close() throws Exception {
-		if (session != null && session.isDone())
-			session.get().close();
+		try {
+			if (session != null && session.isDone())
+				session.get().close();
+		} catch (ExecutionException ee) {
+			if (BA.debugMode)
+				ee.printStackTrace();
+		}
 		if (wsc.isRunning()) {
 			BA.submitRunnable(new Runnable() {
-				
+
 				@Override
 				public void run() {
 					try {
-					wsc.stop();
+						wsc.stop();
 					} catch (Exception e) {
 						e.printStackTrace();
 					}
-					
+
 				}
 			}, null, 0);
-			
+
 		}
 	}
 	/**
@@ -152,7 +170,7 @@ public class WebSocketClientWrapper {
 		{
 			super.onWebSocketClose(statusCode, reason);
 			ba.raiseEventFromDifferentThread(WebSocketClientWrapper.this, null, 0, eventName + "_closed", false, 
-				new Object[] {BA.ReturnString(reason)});
+					new Object[] {BA.ReturnString(reason)});
 		}
 		@Override
 		public void onWebSocketError(Throwable cause) {
@@ -166,7 +184,7 @@ public class WebSocketClientWrapper {
 				if (BA.debugMode)
 					e.printStackTrace();
 			}
-		
+
 		}
 		@Override
 		public void onWebSocketText(String message) {
@@ -174,11 +192,11 @@ public class WebSocketClientWrapper {
 					false, new Object[] {message});
 		}
 		@Override
-	    public void onWebSocketBinary(byte[] payload, int offset, int len)
-	    {
+		public void onWebSocketBinary(byte[] payload, int offset, int len)
+		{
 			ba.raiseEventFromDifferentThread(WebSocketClientWrapper.this, null, 0, eventName + "_binarymessage",
 					false, new Object[] {payload});
-	    }
-		
+		}
+
 	}
 }
