@@ -14,8 +14,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
- package anywheresoftware.b4a.keywords;
+
+package anywheresoftware.b4a.keywords;
 
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
@@ -25,6 +25,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Locale;
 import java.util.Random;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadFactory;
@@ -56,7 +57,7 @@ import anywheresoftware.b4a.objects.streams.File;
 /**
  * These are the internal keywords.
  */
-@Version(10.00f)
+@Version(10.20f)
 public class Common {
 
 	@Hide
@@ -596,6 +597,59 @@ public class Common {
 		return ba.subExists(Sub.toLowerCase(BA.cul));
 	}
 
+	private static final java.util.Map<Class<?>, Integer> testedClassesForIsInitialized = new ConcurrentHashMap<>();
+	
+
+	/**
+	 * Tests whether the given object is not null and initialized (if it has such method or field).
+	 *If there is no such method or field then only null is tested.
+	 */
+	public static boolean Initialized (Object Object) {
+		return !NotInitialized(Object);
+	}
+
+	/**
+	 * Tests whether the given object is null or is not initialized (if it has such method or field).
+	 *If there is no such method or field then only null is tested.
+	 */
+	public static boolean NotInitialized (Object Object) {
+		if (Object == null)
+			return true;
+		if (Object instanceof ObjectWrapper) {
+			return ((ObjectWrapper<?>)Object).getObjectOrNull() == null;
+		} else if (Object instanceof B4AClass) {
+			return !((B4AClass)Object).IsInitialized();
+		} else {
+			Class<?> cls = Object.getClass();
+			Integer b = testedClassesForIsInitialized.get(cls);
+			if (b == null || b.intValue() > 0) {
+				Object o = null;
+				if (b == null || b.intValue() == 1) {
+					try {
+						o = cls.getMethod("IsInitialized").invoke(Object);
+						if (b == null && o instanceof Boolean)
+							testedClassesForIsInitialized.put(cls, 1);
+					} catch (Exception e) {
+						//ignore
+					}
+				}
+				if (o == null && (b == null || b.intValue() == 2)) {
+					try {
+						o = cls.getField("IsInitialized").get(Object);
+						if (b == null && o instanceof Boolean)
+							testedClassesForIsInitialized.put(cls, 2);
+					}catch (Exception e) {
+						//ignore
+					}
+				}
+				if (b == null && (o == null || (o instanceof Boolean) == false))
+					testedClassesForIsInitialized.put(cls, 0);
+				else
+					return !((Boolean)o).booleanValue();
+			}
+		}
+		return false;
+	}
 
 	/**
 	 * Creates a new String by copying the characters from the array.
@@ -1019,10 +1073,10 @@ public class Common {
 	 * Pauses the current sub execution and resumes it after the specified time.
 	 */
 	public static void Sleep(int Milliseconds) {
-		
+
 	}
 	/**
-	 * Inline If - returns TrueValue if Condition is True and False otherwise. Only the relevant expression is evaluated. 
+	 * Inline If - returns TrueValue if Condition is True and FalseValue otherwise. Only the relevant expression is evaluated. 
 	 */
 	public static Object IIf (boolean Condition, Object TrueValue, Object FalseValue) {
 		return null;
@@ -1031,12 +1085,12 @@ public class Common {
 	public static void Sleep(final BA ba, final ResumableSub rs, int Milliseconds) {
 		if (sleepPool == null) {
 			sleepPool = new ScheduledThreadPoolExecutor(1,  new ThreadFactory() {
-	            public Thread newThread(Runnable r) {
-	                Thread t = Executors.defaultThreadFactory().newThread(r);
-	                t.setDaemon(true);
-	                return t;
-	            }
-	        });
+				public Thread newThread(Runnable r) {
+					Thread t = Executors.defaultThreadFactory().newThread(r);
+					t.setDaemon(true);
+					return t;
+				}
+			});
 		}
 		sleepPool.schedule(new Runnable() {
 
@@ -1056,8 +1110,8 @@ public class Common {
 			}
 		}, Milliseconds, TimeUnit.MILLISECONDS);
 	}
-	
-	
+
+
 	@Hide
 	public static void WaitFor(String SubName, BA ba, ResumableSub rs, Object SenderFilter) {
 		if (ba.waitForEvents == null)
@@ -1072,7 +1126,7 @@ public class Common {
 			if (rsSenderFilter.completed)
 				throw new RuntimeException("Resumable sub already completed");
 			rsSenderFilter.waitForBA = ba;
-			
+
 		}
 		LinkedList<WaitForEvent> ll = ba.waitForEvents.get(SubName);
 		if (ll == null) {
@@ -1101,7 +1155,7 @@ public class Common {
 	@Hide
 	public static void ReturnFromResumableSub(final ResumableSub rs, final Object returnValue) {
 		BA.firstInstance.postRunnable(new Runnable() {
-			
+
 			@Override
 			public void run() {
 				rs.completed = true;
@@ -1113,14 +1167,14 @@ public class Common {
 							rs.waitForBA.raiseEventFromDifferentThread(rs, null, 0, "complete", false, new Object[] {returnValue});
 							return;
 						}
-						
+
 					} 
 					rs.waitForBA.raiseEvent(rs, "complete", returnValue);
 				}
-				
+
 			}
 		});
-		
+
 	}
 	/**
 	 * This object is returned from a call to a non-void resumable sub.
@@ -1135,7 +1189,7 @@ public class Common {
 			return getObject().completed;
 		}
 	}
-			
+
 
 
 }

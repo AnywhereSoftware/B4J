@@ -112,6 +112,7 @@ public class WebViewWrapper extends NodeWrapper<WebView>{
 		getObject().setPrefWidth(d);
 	}
 	
+	@Hide
 	public static Node build(Object prev, HashMap<String, Object> props, boolean designer, Object tag) throws Exception{
 		WebView vg = (WebView) prev;
 		if (vg == null)  {

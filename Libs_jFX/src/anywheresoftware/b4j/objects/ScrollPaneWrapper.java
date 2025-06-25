@@ -160,7 +160,7 @@ public class ScrollPaneWrapper extends ControlWrapper<ScrollPane>{
 	public boolean getFitToWidth() {
 		return getObject().isFitToWidth();
 	}
-
+	@Hide
 	public static Node build(Object prev, HashMap<String, Object> props, boolean designer, Object tag) throws Exception{
 		ScrollPane vg = (ScrollPane) prev;
 		if (vg == null)  {

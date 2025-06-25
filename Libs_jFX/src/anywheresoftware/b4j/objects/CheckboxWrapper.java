@@ -63,6 +63,7 @@ public class CheckboxWrapper extends ButtonBaseWrapper<CheckBox>{
 	public void setChecked(boolean b) {
 		getObject().setSelected(b);
 	}
+	@Hide
 	public static Node build(Object prev, HashMap<String, Object> props, boolean designer, Object tag) throws Exception{
 		CheckBox vg = (CheckBox) prev;
 		if (vg == null) 

@@ -519,7 +519,8 @@ public class NodeWrapper<T extends Node> extends AbsObjectWrapper<T> implements 
 		cnw.setEnabled((Boolean)props.get("enabled"));
 		if (!designer) {
 			cnw.setVisible((Boolean)props.get("visible"));
-			v.setUserData(props.get("tag"));
+			if (props.containsKey("tag"))
+				v.setUserData(props.get("tag"));
 		}
 		StringBuilder sb = new StringBuilder();
 		buildFont(props, v, (Map<String, Object>)props.get("font"), sb, designer, false);

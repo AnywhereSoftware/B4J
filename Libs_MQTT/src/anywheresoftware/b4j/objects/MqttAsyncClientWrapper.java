@@ -44,7 +44,7 @@ import anywheresoftware.b4a.BA.Version;
 @ShortName("MqttClient")
 @Events(values={"Connected (Success As Boolean)", "Disconnected", "MessageArrived (Topic As String, Payload() As Byte)", })
 @Permissions(values={"android.permission.INTERNET"})
-@Version(1.25f)
+@Version(1.26f)
 @DependsOn(values= {"org.eclipse.paho.client.mqttv3-1.2.5"})
 public class MqttAsyncClientWrapper{
 	public static final int QOS_0_MOST_ONCE = 0;

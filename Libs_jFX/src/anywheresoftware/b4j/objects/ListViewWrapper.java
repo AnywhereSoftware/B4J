@@ -158,6 +158,7 @@ public class ListViewWrapper extends ControlWrapper<ListView<Object>>{
 		l.setObject(getObject().getItems());
 		return l;
 	}
+	@Hide
 	@SuppressWarnings("unchecked")
 	public static Node build(Object prev, HashMap<String, Object> props, boolean designer, Object tag) throws Exception{
 		ListView<Object> vg = (ListView<Object>) prev;

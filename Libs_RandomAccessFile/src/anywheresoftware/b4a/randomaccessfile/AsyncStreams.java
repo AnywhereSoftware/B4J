@@ -60,6 +60,10 @@ public class AsyncStreams {
 	volatile long streamReceived;
 	volatile long streamTotal;
 	/**
+	 * Sets the maximum size of the output queue. Must be set before the call to Initialize. Default value is 100.
+	 */
+	public int OutputQueueMaxSize = 100;
+	/**
 	 * Initializes the object. Unlike in prefix mode, the NewData event will be raised with new data as soon as it is available.
 	 *In - The InputStream that will be read. Pass Null if you only want to write with this object.
 	 *Out - The OutputStream that is used for writing the data. Pass Null if you only want to read with this object.
@@ -80,15 +84,8 @@ public class AsyncStreams {
 	 *EventName - Determines the Subs that handle the NewData and Error events.
 	 */
 	public void InitializePrefix(BA ba, InputStream In, boolean BigEndian, OutputStream Out, String EventName) throws IOException {
-
 		StreamFolder = File.getDirTemp();
-
-
 		shared(ba, In, Out, EventName, BigEndian, true);
-		//		if (File.getExternalWritable())
-		//			StreamFolder = File.getDirDefaultExternal();
-		//		else
-		//			StreamFolder = File.getDirInternalCache();
 	}
 	/**
 	 * Returns the total number of bytes of the currently received file. Only valid in prefix mode.
@@ -356,12 +353,13 @@ public class AsyncStreams {
 	private class AOUT implements Runnable {
 		private final OutputStream out;
 		public volatile boolean working = true;
-		private final ArrayBlockingQueue<Object> queue = new ArrayBlockingQueue<Object>(100);
+		private final ArrayBlockingQueue<Object> queue;
 		private final boolean prefix;
 		private final ByteBuffer bb;
 		private byte[] streamBuffer;
 
 		public AOUT (OutputStream out, boolean bigEndian, boolean prefix) {
+			this.queue  = new ArrayBlockingQueue<Object>(AsyncStreams.this.OutputQueueMaxSize);
 			this.out = out;
 			this.prefix = prefix;
 			if (prefix) {
@@ -459,6 +457,7 @@ public class AsyncStreams {
 			} catch (InterruptedException e) {
 				throw new RuntimeException(e);
 			}
+
 		}
 		public void close() {
 			working = false;

@@ -315,6 +315,7 @@ public class Form {
 	}
 	@Hide
 	public static Node build(Object prev, Map<String, Object> props, boolean designer) throws Exception{
+		props.remove("tag");
 		PaneWrapper.build(prev, props, designer);
 		ConcretePaneWrapper.setRTLOrientation((Node)prev, props);
 		Form f = (Form) AbsObjectWrapper.getExtraTags(prev).get("form");

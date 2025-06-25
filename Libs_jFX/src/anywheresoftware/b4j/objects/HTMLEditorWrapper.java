@@ -54,7 +54,7 @@ public class HTMLEditorWrapper extends ControlWrapper<HTMLEditor>{
 	public String getHtmlText() {
 		return getObject().getHtmlText();
 	}
-	
+	@Hide
 	public static Node build(Object prev, HashMap<String, Object> props, boolean designer, Object tag) throws Exception{
 		HTMLEditor vg = (HTMLEditor) prev;
 		if (vg == null)  {

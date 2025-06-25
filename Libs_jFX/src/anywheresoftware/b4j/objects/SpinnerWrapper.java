@@ -141,6 +141,7 @@ public class SpinnerWrapper extends ControlWrapper<Spinner<Object>> {
 	public void setWrapAround(boolean b) {
 		getObject().getValueFactory().setWrapAround(b);
 	}
+	@Hide
 	@SuppressWarnings("unchecked")
 	public static Node build(Object prev, HashMap<String, Object> props, boolean designer, Object tag) throws Exception{
 		Spinner<Object> vg = (Spinner<Object>) prev;

@@ -60,7 +60,7 @@ import anywheresoftware.b4a.BA.Version;
  *Once a socket is connected you should use its <code>InputStream</code> and <code>OutputStream</code> to communicate with the other machine.
  */
 @ShortName("Socket")
-@Version(1.20f)
+@Version(1.21f)
 @Events(values = {"Connected (Successful As Boolean)"})
 @Permissions(values = {"android.permission.INTERNET"})
 public class SocketWrapper implements CheckForReinitialize{
@@ -235,12 +235,14 @@ public class SocketWrapper implements CheckForReinitialize{
 		/**
 		 * Initializes the ServerSocket.
 		 *Port - The port that the server will listen to. Note that you should call Listen to start listening. Port numbers lower than 1024 are restricted by the system.
+		 *Passing 0 to the port will make it select an available port automatically. Passing -1 will prevent the socket from being initialized. This is useful for cases where the socket is initialized externally. 
 		 *EventName - The event Sub prefix name.
 		 */
 		public void Initialize(BA ba, int Port, String EventName) throws IOException {
 			this.ba = ba;
 			this.eventName = EventName.toLowerCase(BA.cul);
-			ssocket = new ServerSocket(Port);
+			if (Port >= 0)
+				ssocket = new ServerSocket(Port);
 		}
 		/**
 		 * Tests whether the object is initialized.

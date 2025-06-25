@@ -175,6 +175,7 @@ public class TreeTableViewWrapper extends ControlWrapper<TreeTableView<anywheres
 		return (TreeTableItemWrapper)AbsObjectWrapper.ConvertToWrapper(new TreeTableItemWrapper(),
 				getObject().getRoot());
 	}
+	@Hide
 	@SuppressWarnings("unchecked")
 	public static Node build(Object prev, HashMap<String, Object> props, boolean designer, Object tag) throws Exception{
 		TreeTableView<TreeTableColType[]> vg = (TreeTableView<TreeTableColType[]>) prev;

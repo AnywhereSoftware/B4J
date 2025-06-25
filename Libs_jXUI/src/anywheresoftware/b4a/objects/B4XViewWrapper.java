@@ -296,7 +296,7 @@ public class B4XViewWrapper extends AbsObjectWrapper<Object>{
 	 * Gets or sets the progress value. The progress value is scaled between 0 to 100 (this is different than the native views range in B4J and B4i). 
 	 * Supported types:
 	 * B4A - ProgressBar
-	 * B4J - ProgressView, ProgressIndicator
+	 * B4J - ProgressBar, ProgressIndicator
 	 * B4i - ProgressView
 	 *<b>Value should be between 0 to 100.</b>
 	 */
@@ -677,7 +677,7 @@ public class B4XViewWrapper extends AbsObjectWrapper<Object>{
 		s.setHPosition(d / (((Pane)s.getObject().getContent()).getPrefWidth() - s.getWidth()));
 	}
 	/**
-	 * Gets or sets the scroll view inner panel.
+	 * Gets the scroll view inner panel.
 	 *Supported types:
 	 *B4A - HorizontalScrollView, ScrollView
 	 *B4i - ScrollView

@@ -93,6 +93,7 @@ public class ChoiceBoxWrapper extends ControlWrapper<ChoiceBox<Object>>{
 	public void HideChoices() {
 		getObject().hide();
 	}
+	@Hide
 	@SuppressWarnings("unchecked")
 	public static Node build(Object prev, HashMap<String, Object> props, boolean designer, Object tag) throws Exception{
 		ChoiceBox<Object> vg = (ChoiceBox<Object>) prev;

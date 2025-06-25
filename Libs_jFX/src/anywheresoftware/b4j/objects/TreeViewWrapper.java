@@ -88,6 +88,7 @@ public class TreeViewWrapper extends ControlWrapper<TreeView<String>>{
 				getObject().getRoot());
 	}
 	
+	@Hide
 	@SuppressWarnings("unchecked")
 	public static Node build(Object prev, HashMap<String, Object> props, boolean designer, Object tag) throws Exception{
 		TreeView<String> vg = (TreeView<String>) prev;

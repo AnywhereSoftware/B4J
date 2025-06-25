@@ -55,14 +55,15 @@ import anywheresoftware.b4a.objects.collections.Map.MyMap;
  *A short tutorial about the encryption methods is available <link>here|http://www.basic4ppc.com/forum/basic4android-getting-started-tutorials/11565-encryptying-information-randomaccessfile-library.html</link>.
  */
 @ShortName("RandomAccessFile")
-@Version(2.34f)
+@Version(2.35f)
 public class RandomAccessFile {
 	private FileChannel channel;
 	private ByteBuffer bb4;
 	private ByteBuffer bb8;
 	private static final byte COMPRESS = 1;
 	private static final byte ENCRYPT = 2;
-	private static final ConcurrentHashMap<String, String> correctedClasses = new ConcurrentHashMap<String, String>();
+	@Hide
+	public static final ConcurrentHashMap<String, String> correctedClasses = new ConcurrentHashMap<String, String>();
 	private static final ConcurrentHashMap<Class<?>, Boolean> knownTypes = new ConcurrentHashMap<Class<?>, Boolean>();
 	/**
 	 * Holds the current file position.

@@ -14,18 +14,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
- package anywheresoftware.b4j.objects;
+
+package anywheresoftware.b4j.objects;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.io.UnsupportedEncodingException;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map.Entry;
 
@@ -38,7 +36,6 @@ import org.apache.commons.exec.PumpStreamHandler;
 
 import anywheresoftware.b4a.BA;
 import anywheresoftware.b4a.BA.Events;
-import anywheresoftware.b4a.BA.Hide;
 import anywheresoftware.b4a.BA.ShortName;
 import anywheresoftware.b4a.BA.Version;
 import anywheresoftware.b4a.objects.collections.List;
@@ -48,7 +45,7 @@ import anywheresoftware.b4a.objects.collections.Map;
  * Shell provides methods to start new processes and run other applications.
  *The execution is asynchronous. The ProcessCompleted event is raised after the process has exited.
  */
-@Version(1.52f)
+@Version(1.55f)
 @ShortName("Shell")
 @Events(values={"ProcessCompleted (Success As Boolean, ExitCode As Int, StdOut As String, StdErr As String)",
 		"StdOut (Buffer() As Byte, Length As Int)",
@@ -107,12 +104,13 @@ public class Shell {
 	 *Example:<code>
 	 *shl.SetEnvironmentVariables(CreateMap("ZZZ": "abc", "YYYY": "213"))</code>
 	 */
+	@SuppressWarnings("unchecked")
 	public void SetEnvironmentVariables(Map Vars) {
 		if (Vars.IsInitialized() == false)
 			envVars = null;
 		else {
 			envVars = new HashMap<String, String>();
-			for (Entry<Object, Object> e : Vars.getObject().entrySet())
+			for (Entry<Object, Object> e : ((java.util.Map<Object, Object>)Vars.getObject()).entrySet())
 				envVars.put(String.valueOf(e.getKey()), String.valueOf(e.getValue()));
 		}
 	}
@@ -175,18 +173,43 @@ public class Shell {
 	 * Returns the current output. Should only be used when the process was started with Run (not RunWithOutputEvents).
 	 */
 	public String GetTempOut() throws UnsupportedEncodingException {
-		if (tempOut == null)
-			return "";
-		return new String(tempOut.toByteArray(), encoding);
+		return GetTempOut2(false);
+	}
+	/**
+	 * Same as GetTempOut.
+	 *DiscardReadData - If true then the buffer is emptied after this call.
+	 */
+	public String GetTempOut2(boolean DiscardReadData) throws UnsupportedEncodingException {
+		synchronized (tempOut) {
+			if (tempOut == null)
+				return "";
+			String res = new String(tempOut.toByteArray(), encoding);
+			if (DiscardReadData)
+				tempOut.reset();
+			return res;
+		}
 	}
 	/**
 	 * Returns the current error output. Should only be used when the process was started with Run (not RunWithOutputEvents).
 	 */
 	public String GetTempErr() throws UnsupportedEncodingException {
-		if (tempErr == null)
-			return "";
-		return new String(tempErr.toByteArray(), encoding);
+		return GetTempErr2(false);
 	}
+	/**
+	 * Same as GetTempErr.
+	 *DiscardReadData - If true then the buffer is emptied after this call.
+	 */
+	public String GetTempErr2(boolean DiscardReadData) throws UnsupportedEncodingException {
+		synchronized (tempErr) {
+			if (tempErr == null)
+				return "";
+			String res = new String(tempErr.toByteArray(), encoding);
+			if (DiscardReadData)
+				tempErr.reset();
+			return res;
+		}
+	}
+
 	/**
 	 * Starts the process. The StdOut and StdErr events will be raised when new data is available.
 	 *<b>Note that these events are raised on a background thread.</b>
@@ -217,7 +240,7 @@ public class Shell {
 		}
 		return sr;
 	}
-	private void run(final BA ba, long TimeoutMs, final OutputStream out,final OutputStream err) throws ExecuteException, IOException {
+	private void run(final BA ba, final long TimeoutMs, final OutputStream out,final OutputStream err) throws ExecuteException, IOException {
 		final ExecuteWatchdog wd = new ExecuteWatchdog(TimeoutMs);
 		exec.setWatchdog(wd);
 		PumpStreamHandler p = new PumpStreamHandler(out, err, processInputStream);
@@ -250,7 +273,8 @@ public class Shell {
 				}
 				boolean success = true;
 				if (wd.killedProcess()) {
-					eo = "timeout";
+					if (TimeoutMs != -1)
+						eo += "\ntimeout";
 					success = false;
 				}
 				ba.raiseEventFromDifferentThread(Shell.this, null, 0 , eventName + "_processcompleted", false,
@@ -285,6 +309,6 @@ public class Shell {
 		}
 
 	}
-	
+
 
 }

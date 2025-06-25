@@ -228,6 +228,7 @@ public class TableViewWrapper extends ControlWrapper<TableView<Object[]>> {
 			return new ReadOnlyObjectWrapper<Object>(arg0.getValue()[colIndex]);
 		}
 	}
+	@Hide
 	public static Node build(Object prev, HashMap<String, Object> props, boolean designer, Object tag) throws Exception{
 		TableView<Object[]> vg = (TableView<Object[]>) prev;
 		if (vg == null)  {

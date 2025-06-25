@@ -58,7 +58,7 @@ import anywheresoftware.b4a.BA.CustomClass;
 /**
  * A class that holds utility methods related to JavaFX apps.
  */
-@Version(9.80f)
+@Version(10.2f)
 @DependsOn(values = {"Json"})
 @ShortName("JFX")
 public class JFX {
