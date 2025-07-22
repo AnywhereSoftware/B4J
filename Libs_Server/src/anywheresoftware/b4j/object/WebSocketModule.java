@@ -48,6 +48,8 @@ import jakarta.servlet.http.HttpSession;
 
 public class WebSocketModule {
 	@Hide
+	public static boolean suppressClosedChannelException = true;
+	@Hide
 	public static class Servlet extends JettyWebSocketServlet  {
 		private static final long serialVersionUID = 1L;
 		public static int DATA_TIMEOUT = 10000;
@@ -207,18 +209,24 @@ public class WebSocketModule {
 						ba.startMessageLoop();
 					}
 				} catch (Exception e) {
-					e.printStackTrace();
+					logException(e);
 					try {
 						runDisconnect(false);
 						if (getSession() != null && getSession().isOpen()) {
 							getSession().close();
 						}
 					} catch (Exception ee) {
-						ee.printStackTrace();
+						logException(ee);
 					}
 				}
 			}
 
+		}
+		private void logException(Exception e) {
+			if (suppressClosedChannelException && e instanceof ClosedChannelException)
+				BA.LogError(String.valueOf(e));
+			else
+				e.printStackTrace();
 		}
 
 	}

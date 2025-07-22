@@ -69,7 +69,7 @@ import jakarta.servlet.Filter;
 		@CustomClass(name = "Server Filter", fileNameWithoutExtension = "server_filter"),
 		@CustomClass(name = "Server WebSocket", fileNameWithoutExtension = "server_websocket")
 })
-@Version(4.02f)
+@Version(4.03f)
 @ShortName("Server")
 @DependsOn(values={"c3p0-0.9.5.2", "c3p0-oracle-thin-extras-0.9.5.2", "mchange-commons-java-0.2.11"
 		, "json", "jserver/http2-common-11.0.9.jar", 
