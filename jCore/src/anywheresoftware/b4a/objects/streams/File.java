@@ -40,6 +40,7 @@ import java.util.Properties;
 
 import anywheresoftware.b4a.AbsObjectWrapper;
 import anywheresoftware.b4a.BA;
+import anywheresoftware.b4a.BA.Hide;
 import anywheresoftware.b4a.BA.ShortName;
 import anywheresoftware.b4a.keywords.Bit;
 import anywheresoftware.b4a.keywords.Common;
@@ -50,6 +51,10 @@ import anywheresoftware.b4a.objects.collections.Map;
  */
 public class File {
 	private static final String assetsDir = "AssetsDir";
+	@Hide
+	public static String assetsDirName = "/Files";
+	@Hide
+	public static Class<?> getResourceClass = File.class;
 	/**
 	 * Returns a reference to the files added to the Files tab. These files are read-only (in Release mode).
 	 */
@@ -181,7 +186,7 @@ public class File {
 	 */
 	public static String GetUri(String Dir, String FileName) {
 		if (Dir.equals(File.getDirAssets())) {
-			URL u = File.class.getResource("/Files/" + FileName);
+			URL u = getResourceClass.getResource(assetsDirName + "/" + FileName);
 			if (u == null)
 				throw new RuntimeException("Asset file not found: " + FileName);
 			return u.toString();
@@ -230,7 +235,7 @@ public class File {
 
 		InputStreamWrapper is = new InputStreamWrapper();
 		if (Dir.equals(assetsDir)) {
-			InputStream in = File.class.getResourceAsStream("/Files/" + FileName);
+			InputStream in = getResourceClass.getResourceAsStream(assetsDirName + "/" + FileName);
 			if (in == null)
 				throw new FileNotFoundException(FileName);
 

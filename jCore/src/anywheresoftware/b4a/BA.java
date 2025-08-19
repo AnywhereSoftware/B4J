@@ -44,6 +44,7 @@ import java.util.concurrent.Future;
 import anywheresoftware.b4a.BA.Hide;
 import anywheresoftware.b4a.keywords.Common;
 import anywheresoftware.b4a.objects.B4AException;
+import anywheresoftware.b4a.objects.streams.File;
 
 @Hide
 public abstract class BA {
@@ -84,6 +85,11 @@ public abstract class BA {
 		if (firstInstance == null) {
 			firstInstance = this;
 			BA.packageName = packageName;
+			try {
+				File.getResourceClass = Class.forName(className);
+			} catch (ClassNotFoundException e) {
+				throw new RuntimeException(e);
+			}
 		}
 		this.eventsTarget = eventsTarget;
 		this.className = className;

@@ -36,6 +36,7 @@ import org.apache.commons.exec.PumpStreamHandler;
 
 import anywheresoftware.b4a.BA;
 import anywheresoftware.b4a.BA.Events;
+import anywheresoftware.b4a.BA.Hide;
 import anywheresoftware.b4a.BA.ShortName;
 import anywheresoftware.b4a.BA.Version;
 import anywheresoftware.b4a.objects.collections.List;
@@ -45,7 +46,7 @@ import anywheresoftware.b4a.objects.collections.Map;
  * Shell provides methods to start new processes and run other applications.
  *The execution is asynchronous. The ProcessCompleted event is raised after the process has exited.
  */
-@Version(1.55f)
+@Version(1.56f)
 @ShortName("Shell")
 @Events(values={"ProcessCompleted (Success As Boolean, ExitCode As Int, StdOut As String, StdErr As String)",
 		"StdOut (Buffer() As Byte, Length As Int)",
@@ -290,6 +291,13 @@ public class Shell {
 		public int ExitCode;
 		public String StdOut;
 		public String StdErr;
+		@Hide
+		@Override
+		public String toString() {
+			return "ShellSyncResult [Success=" + Success + ", ExitCode=" + ExitCode + ", StdOut=" + StdOut + ", StdErr="
+					+ StdErr + "]";
+		}
+		
 	}
 	class EventOutput extends OutputStream {
 		private final BA ba;
