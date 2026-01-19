@@ -19,6 +19,8 @@
 
 import java.io.IOException;
 import java.io.Writer;
+import java.net.Inet6Address;
+import java.net.InetAddress;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 
@@ -278,11 +280,16 @@ public class SMTPWrapper {
 							client.disconnect();
 							throw new IOException("SMTP server refused connection.");
 						}
-
-						client.ehlo(client.getLocalAddress().getHostAddress());
+						InetAddress ia = client.getLocalAddress();
+						String hostAddress;
+						if (ia instanceof Inet6Address)
+							hostAddress = "[IPv6:"  + ia.getHostAddress() + "]";
+						else
+							hostAddress = ia.getHostAddress();
+						client.ehlo(hostAddress);
 						if (startTLSMode) {
 							client.execTLS(trustManager);
-							client.ehlo(client.getLocalAddress().getHostAddress());
+							client.ehlo(hostAddress);
 						}
 						client.auth(autoMethod, user, password);
 						client.setSender(mailFrom);

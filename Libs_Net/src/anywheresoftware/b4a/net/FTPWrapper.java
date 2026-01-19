@@ -61,7 +61,7 @@ import anywheresoftware.b4a.objects.streams.File;
 		"CommandCompleted (Command As String, Success As Boolean, ReplyCode As Int, ReplyString As String)",
 		"ListCompleted (ServerPath As String, Success As Boolean, Folders() As FTPEntry, Files() As FTPEntry)"})
 @Permissions(values = {"android.permission.INTERNET"})
-@Version(1.81f)
+@Version(1.83f)
 public class FTPWrapper implements CheckForReinitialize{
 	FTPClient client;
 	private String host, user, password;

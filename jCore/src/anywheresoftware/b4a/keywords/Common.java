@@ -57,7 +57,7 @@ import anywheresoftware.b4a.objects.streams.File;
 /**
  * These are the internal keywords.
  */
-@Version(10.31f)
+@Version(10.50f)
 public class Common {
 
 	@Hide
@@ -70,6 +70,7 @@ public class Common {
 	public static final boolean False = false;
 	public static final Object Null = null;
 	private static java.text.NumberFormat numberFormat, numberFormat2;
+	public static Locale stringLocale = Locale.US;
 	/**
 	 * New line character. The value of Chr(10).
 	 */

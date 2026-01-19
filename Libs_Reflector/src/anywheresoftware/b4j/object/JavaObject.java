@@ -36,15 +36,17 @@ import anywheresoftware.b4a.BA;
 import anywheresoftware.b4a.BA.Events;
 import anywheresoftware.b4a.BA.ShortName;
 import anywheresoftware.b4a.BA.Version;
+import anywheresoftware.b4a.keywords.Common;
 
 @ShortName("JavaObject")
 @Events(values={"Event (MethodName As String, Args() As Object) As Object"})
-@Version(2.06f)
+@Version(2.07f)
 public class JavaObject extends AbsObjectWrapper<Object>{
 	private static final FieldCache fieldCache = new FieldCache();
 	private static final MethodCache methodCache = new MethodCache();
 	private static final HashMap<String, Class<?>> primitives = new HashMap<String, Class<?>>();
 	private static final HashMap<Class<?>, Class<?>> primitiveToBoxed = new HashMap<Class<?>, Class<?>>();
+	private static final boolean isB4J = Common.IsDevTool("b4j");
 	static {
 
 		primitiveToBoxed.put(byte.class, Byte.class);
@@ -253,16 +255,16 @@ public class JavaObject extends AbsObjectWrapper<Object>{
 				if (Thread.currentThread() == t) {
 					if (!fromUi) {
 						Object ret = ba.raiseEvent(obj, eventName, params);
-						return ret == null ? returnValue : ret;
+						return returnFromEvent(arg1.getName(), ret, returnValue);
 					}
 					else {
 						ba.raiseEventFromUI(obj, eventName, params);
-						return returnValue;
+						return returnFromEvent(arg1.getName(), null, returnValue);
 					}
 				}
 				else {
 					ba.raiseEventFromDifferentThread(obj, null, 0, eventName, false, params);
-					return returnValue;
+					return returnFromEvent(arg1.getName(), null, returnValue);
 				}
 			}
 
@@ -271,6 +273,13 @@ public class JavaObject extends AbsObjectWrapper<Object>{
 		return Proxy.newProxyInstance(getClass().getClassLoader(),
 				new Class[] {inter  },
 				handler);
+	}
+	private static Object returnFromEvent(String methodName, Object ret, Object defaultValue) {
+		if (ret != null)
+			return ret;
+		if (methodName.equals("toString") && !(defaultValue instanceof String))
+			return "CreateEvent_Proxy";
+		return defaultValue;
 	}
 	private Class<?> getCurrentClass() {
 		if (getObject() instanceof Class<?>) {
@@ -336,7 +345,7 @@ public class JavaObject extends AbsObjectWrapper<Object>{
 			if (classMethods == null) {
 				classMethods = new HashMap<String, ArrayList<Method>>();
 				Class<?> cls = Class.forName(className);
-				if (BA.isB4J && (cls.getModifiers() & Modifier.PUBLIC) == 0) {
+				if (isB4J && (cls.getModifiers() & Modifier.PUBLIC) == 0) {
 					fillNonPublicB4JMethods(className, classMethods, cls);
 				} else {
 					Method[] methods = null;
