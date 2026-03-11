@@ -17,8 +17,8 @@
 package org.json;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 // Note: this class was written without inspecting the non-free org.json sourcecode.
@@ -109,7 +109,7 @@ public class JSONObject {
      * Creates a {@code JSONObject} with no name/value mappings.
      */
     public JSONObject() {
-        nameValuePairs = new HashMap<String, Object>();
+        nameValuePairs = new LinkedHashMap<String, Object>();
     }
 
     /**

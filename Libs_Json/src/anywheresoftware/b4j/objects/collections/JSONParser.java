@@ -20,6 +20,7 @@
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.Set;
 import java.util.Map.Entry;
 
 import org.json.JSONArray;
@@ -48,7 +49,7 @@ import anywheresoftware.b4a.objects.collections.Map.MyMap;
  *JSON.Initialize(File.ReadString(File.DirAssets, "example.json")) 'Read the text from a file.
  *Map1 = JSON.NextObject</code>
  */
-@Version(1.21f)
+@Version(1.30f)
 @ShortName("JSONParser")
 public class JSONParser extends AbsObjectWrapper<JSONTokener>{
 	/**
@@ -93,7 +94,6 @@ public class JSONParser extends AbsObjectWrapper<JSONTokener>{
 		return o;
 	}
 	
-	@SuppressWarnings("unchecked")
 	private MyMap convertObjToMap(JSONObject j) throws JSONException {
 		MyMap m = new MyMap();
 		Iterator<String> it = (Iterator<String>)j.keys();
@@ -180,14 +180,14 @@ public class JSONParser extends AbsObjectWrapper<JSONTokener>{
 			else
 				return ((JSONArray)json).toString(Indent);
 		}
-		@SuppressWarnings("unchecked")
-		private JSONObject convertMapToJO(MyMap map) throws JSONException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
+		@SuppressWarnings({ "unchecked", "rawtypes" })
+		private JSONObject convertMapToJO(java.util.Map map) throws JSONException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
 			JSONObject j = new JSONObject();
-			for (Entry<Object, Object> e : map.entrySet()) {
+			for (Entry e : (Set<Entry>)map.entrySet()) {
 				String key = String.valueOf(e.getKey());
 				Object o = e.getValue();
-				if (o instanceof MyMap) {
-					j.put(key, convertMapToJO((MyMap)o));
+				if (o instanceof java.util.Map) {
+					j.put(key, convertMapToJO((java.util.Map)o));
 				}
 				else if (o instanceof Map) {
 					j.put(key, convertMapToJO(((Map)o).getObject()));
