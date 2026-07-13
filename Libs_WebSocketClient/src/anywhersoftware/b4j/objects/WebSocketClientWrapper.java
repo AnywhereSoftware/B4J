@@ -41,20 +41,20 @@ import anywheresoftware.b4a.BA.Version;
 @ShortName("WebSocketClient")
 @Events(values={"Connected", "Closed (Reason As String)", "TextMessage (Message As String)", "BinaryMessage (Data() As Byte)"})
 @DependsOn(values={
-		"jserver/jetty-util-11.0.9.jar", 
-		"jserver/websocket-core-common-11.0.9.jar", 
-		"jserver/websocket-jetty-api-11.0.9.jar", 
-		"jserver/websocket-jetty-common-11.0.9.jar", 
-		"jserver/websocket-jetty-client-11.0.9.jar", 
-		"jserver/jetty-security-11.0.9.jar", 
-		"jserver/jetty-io-11.0.9.jar", 
-		"jserver/jetty-http-11.0.9.jar", 
-		"jserver/slf4j-api-2.0.0-alpha6.jar",		
-		"jserver/websocket-core-client-11.0.9.jar",		
-		"jserver/jetty-client-11.0.9.jar",		
-		"jserver/jetty-slf4j-impl-11.0.9.jar"		
+		"jserver/jetty-util-11.0.26.jar", 
+		"jserver/websocket-core-common-11.0.26.jar", 
+		"jserver/websocket-jetty-api-11.0.26.jar", 
+		"jserver/websocket-jetty-common-11.0.26.jar", 
+		"jserver/websocket-jetty-client-11.0.26.jar", 
+		"jserver/jetty-security-11.0.26.jar", 
+		"jserver/jetty-io-11.0.26.jar", 
+		"jserver/jetty-http-11.0.26.jar", 
+		"jserver/slf4j-api-2.0.13.jar",		
+		"jserver/websocket-core-client-11.0.26.jar",		
+		"jserver/jetty-client-11.0.26.jar",		
+		"jserver/jetty-slf4j-impl-11.0.26.jar"		
 })
-@Version(2.00f)
+@Version(2.10f)
 public class WebSocketClientWrapper {
 	private BA ba;
 	private String eventName;

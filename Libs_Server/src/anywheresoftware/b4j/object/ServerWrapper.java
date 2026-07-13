@@ -1,6 +1,6 @@
 
 /*
- * Copyright 2010 - 2020 Anywhere Software (www.b4x.com)
+ * Copyright 2010 - 2026 Anywhere Software (www.b4x.com)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,10 +24,18 @@ import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.eclipse.jetty.alpn.server.ALPNServerConnectionFactory;
+import org.eclipse.jetty.ee11.servlet.DefaultServlet;
+import org.eclipse.jetty.ee11.servlet.ErrorPageErrorHandler;
+import org.eclipse.jetty.ee11.servlet.FilterHolder;
+import org.eclipse.jetty.ee11.servlet.ServletContextHandler;
+import org.eclipse.jetty.ee11.servlet.ServletHolder;
+import org.eclipse.jetty.ee11.servlet.SessionHandler;
+import org.eclipse.jetty.ee11.websocket.server.config.JettyWebSocketServletContainerInitializer;
 import org.eclipse.jetty.http2.server.HTTP2ServerConnectionFactory;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.CustomRequestLog;
 import org.eclipse.jetty.server.Handler;
+import org.eclipse.jetty.server.Handler.Sequence;
 import org.eclipse.jetty.server.HttpConfiguration;
 import org.eclipse.jetty.server.HttpConnectionFactory;
 import org.eclipse.jetty.server.RequestLogWriter;
@@ -36,17 +44,8 @@ import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.SslConnectionFactory;
 import org.eclipse.jetty.server.handler.DefaultHandler;
-import org.eclipse.jetty.server.handler.HandlerCollection;
-import org.eclipse.jetty.server.handler.RequestLogHandler;
 import org.eclipse.jetty.server.handler.gzip.GzipHandler;
-import org.eclipse.jetty.server.session.SessionHandler;
-import org.eclipse.jetty.servlet.DefaultServlet;
-import org.eclipse.jetty.servlet.ErrorPageErrorHandler;
-import org.eclipse.jetty.servlet.FilterHolder;
-import org.eclipse.jetty.servlet.ServletContextHandler;
-import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
-import org.eclipse.jetty.websocket.server.config.JettyWebSocketServletContainerInitializer;
 
 import anywheresoftware.b4a.AbsObjectWrapper;
 import anywheresoftware.b4a.BA;
@@ -69,35 +68,44 @@ import jakarta.servlet.Filter;
 		@CustomClass(name = "Server Filter", fileNameWithoutExtension = "server_filter"),
 		@CustomClass(name = "Server WebSocket", fileNameWithoutExtension = "server_websocket")
 })
-@Version(4.03f)
+@Version(5.00f)
 @ShortName("Server")
-@DependsOn(values={"c3p0-0.9.5.2", "c3p0-oracle-thin-extras-0.9.5.2", "mchange-commons-java-0.2.11"
-		, "json", "jserver/http2-common-11.0.9.jar", 
-		"jserver/http2-server-11.0.9.jar", 
-		"jserver/jetty-alpn-java-server-11.0.9.jar", 
-		"jserver/jetty-alpn-server-11.0.9.jar", 
-		"jserver/jetty-io-11.0.9.jar", 
-		"jserver/jetty-jakarta-servlet-api-5.0.2.jar", 
-		"jserver/jetty-jakarta-websocket-api-2.0.0.jar", 
-		"jserver/jetty-server-11.0.9.jar", 
-		"jserver/jetty-servlet-11.0.9.jar", 
-		"jserver/jetty-servlets-11.0.9.jar", 
-		"jserver/jetty-slf4j-impl-11.0.9.jar", 
-		"jserver/jetty-util-11.0.9.jar", 
-		"jserver/slf4j-api-2.0.0-alpha6.jar", 
-		"jserver/websocket-core-common-11.0.9.jar", 
-		"jserver/websocket-core-server-11.0.9.jar", 
-		"jserver/websocket-jakarta-client-11.0.9.jar", 
-		"jserver/websocket-jakarta-common-11.0.9.jar", 
-		"jserver/websocket-jakarta-server-11.0.9.jar", 
-		"jserver/websocket-jetty-api-11.0.9.jar", 
-		"jserver/websocket-jetty-common-11.0.9.jar", 
-		"jserver/websocket-jetty-server-11.0.9.jar", 
-		"jserver/websocket-servlet-11.0.9.jar", 
-		"jserver/jetty-http-11.0.9.jar", 
-		"jserver/jetty-security-11.0.9.jar", 
-		"jserver/http2-hpack-11.0.9.jar", 
-		"jserver/jetty-webapp-11.0.9.jar"})
+@DependsOn(values={"json", "jserver/c3p0-0.13.0.jar",
+		"jserver/c3p0-oracle-thin-extras-0.9.5.jar",
+		"jserver/jakarta.servlet-api-6.1.0.jar",
+		"jserver/jetty-alpn-client-12.1.10.jar",
+		"jserver/jetty-alpn-java-server-12.1.10.jar",
+		"jserver/jetty-alpn-server-12.1.10.jar",
+		"jserver/jetty-client-12.1.10.jar",
+		"jserver/jetty-ee11-servlet-12.1.10.jar",
+		"jserver/jetty-ee11-servlets-12.1.10.jar",
+		"jserver/jetty-ee11-webapp-12.1.10.jar",
+		"jserver/jetty-ee11-websocket-jetty-server-12.1.10.jar",
+		"jserver/jetty-ee11-websocket-servlet-12.1.10.jar",
+		"jserver/jetty-http-12.1.10.jar",
+		"jserver/jetty-http2-common-12.1.10.jar",
+		"jserver/jetty-http2-hpack-12.1.10.jar",
+		"jserver/jetty-http2-server-12.1.10.jar",
+		"jserver/jetty-http3-common-12.1.10.jar",
+		"jserver/jetty-http3-qpack-12.1.10.jar",
+		"jserver/jetty-http3-server-12.1.10.jar",
+		"jserver/jetty-io-12.1.10.jar",
+		"jserver/jetty-quic-common-12.1.10.jar",
+		"jserver/jetty-quic-quiche-common-12.1.10.jar",
+		"jserver/jetty-quic-server-12.1.10.jar",
+		"jserver/jetty-security-12.1.10.jar",
+		"jserver/jetty-server-12.1.10.jar",
+		"jserver/jetty-session-12.1.10.jar",
+		"jserver/jetty-util-12.1.10.jar",
+		"jserver/jetty-websocket-jetty-api-12.1.10.jar",
+		"jserver/jetty-websocket-jetty-client-12.1.10.jar",
+		"jserver/jetty-websocket-jetty-common-12.1.10.jar",
+		"jserver/jetty-websocket-jetty-server-12.1.10.jar",
+		"jserver/mchange-commons-java-0.5.0.jar",
+		"jserver/jetty-websocket-core-common-12.1.10.jar",
+		"jserver/jetty-websocket-core-server-12.1.10.jar",
+		"jserver/jetty-slf4j-impl-12.1.10.jar",
+		"jserver/slf4j-api-2.0.17.jar"})
 public class ServerWrapper {
 	@Hide
 	public Server server;
@@ -118,6 +126,7 @@ public class ServerWrapper {
 	public ServletContextHandler context;
 	@Hide
 	public String host = null;
+	@SuppressWarnings("removal")
 	@Hide
 	public GzipHandler gzipHandler;
 	private int threadsIndexCounter;
@@ -187,12 +196,7 @@ public class ServerWrapper {
 				HTTP2ServerConnectionFactory http2 = new HTTP2ServerConnectionFactory(https_config);
 				ALPNServerConnectionFactory alpn = new ALPNServerConnectionFactory();
 				alpn.setDefaultProtocol(http1.getProtocol());
-//				if (draftHttp3PortWillBeChanged > 0) {
-//					HTTP3ServerConnector h3 = new HTTP3ServerConnector(server, sslFactory, new HTTP3ServerConnectionFactory(https_config));
-//					h3.setPort(draftHttp3PortWillBeChanged);
-//					server.addConnector(h3);
-//					System.out.println("adding h3 connector");
-//				}
+
 				https = new ServerConnector(server, ssl, alpn, http2, http1);
 			}
 			else {
@@ -209,7 +213,7 @@ public class ServerWrapper {
 		}
 		for (Connector connector : connectors)
 			server.addConnector(connector);
-		context.setResourceBase(staticFiles);
+		context.setBaseResourceAsString(staticFiles);
 		final boolean debug = BA.isShellModeRuntimeCheck(ba);
 		for (HandlerData hd : handlers) {
 			JServlet js = new JServlet(Class.forName(fixClassName(hd)), hd.singleThread | debug);
@@ -252,16 +256,15 @@ public class ServerWrapper {
 			err.setErrorPages(errorMap);
 			context.setErrorHandler(err);
 		}
-		HandlerCollection handlers = new HandlerCollection(MutableHandleCollection);
-		RequestLogHandler log = new RequestLogHandler();
+		Sequence handlers = new Sequence(MutableHandleCollection, new ArrayList<Handler>());
 		File.MakeDir(null, logsFileFolder);
-		CustomRequestLog rl = new CustomRequestLog(File.Combine(logsFileFolder, "b4j-yyyy_mm_dd.request.log"), customLogFormat);
-		RequestLogWriter logWriter = (RequestLogWriter)rl.getWriter();
+		CustomRequestLog requestLog = new CustomRequestLog(File.Combine(logsFileFolder, "b4j-yyyy_mm_dd.request.log"), customLogFormat);
+		RequestLogWriter logWriter = (RequestLogWriter)requestLog.getWriter();
 		logWriter.setRetainDays(retainDays);
 		logWriter.setTimeZone(logsTimezone);
 		logWriter.setAppend(true);
-		log.setRequestLog(rl);
-		handlers.setHandlers(new Handler[]{context,new DefaultHandler(), log});
+		server.setRequestLog(requestLog);
+		handlers.setHandlers(new Handler[]{context,new DefaultHandler()});
 		Handler h = handlers;
 		if (gzipHandler != null) {
 			gzipHandler.setHandler(handlers);
@@ -338,6 +341,7 @@ public class ServerWrapper {
 	 * Calling this method will cause the server to compress the responses if the client supports GZIP responses and the resource mime type is not of a known compressed type.
 	 *In most cases it should be enabled.
 	 */
+	@SuppressWarnings("removal")
 	public void setGzipEnabled(boolean b) {
 		if (b) {
 			gzipHandler = new GzipHandler();
@@ -419,7 +423,7 @@ public class ServerWrapper {
 	 *Example:<code>srvr.AddDoSFilter("/*", Null)</code>
 	 */
 	public void AddDoSFilter(String Path, Map Settings) {
-		HandlerData hd = new HandlerData("org.eclipse.jetty.servlets.DoSFilter", Path, false);
+		HandlerData hd = new HandlerData("org.eclipse.jetty.ee11.servlets.DoSFilter", Path, false);
 		hd.extra = Settings;
 		hd.internal = true;
 		filters.add(hd);

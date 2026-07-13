@@ -27,8 +27,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import org.eclipse.jetty.websocket.api.Callback;
 import org.eclipse.jetty.websocket.api.Session;
-import org.eclipse.jetty.websocket.server.JettyServerUpgradeRequest;
 
 import anywheresoftware.b4a.AbsObjectWrapper;
 import anywheresoftware.b4a.B4AClass;
@@ -90,11 +90,21 @@ public class WebSocket{
 		}
 	}
 	@Hide
-	public Session session;
-	Adapter adapter;
-	boolean singleThread;
+	public final Session session;
+	@Hide
+	public final Adapter adapter;
+	public final boolean singleThread;
 	final LinkedList<SimpleFuture> futures = new LinkedList<SimpleFuture>();
-	private boolean shouldFlushOutput;
+	public WebSocket(Session session, Adapter adapter, boolean singleThread) {
+		this.session = session;
+		this.adapter = adapter;
+		this.singleThread = singleThread;
+	}
+	public WebSocket() { //called from B4J when declaring WebSocket variable.
+		this.session = null;
+		this.adapter = null;
+		this.singleThread = false;
+	}
 	
 	/**
 	 * Returns true if the request was made with a secure channel (SSL).
@@ -109,19 +119,15 @@ public class WebSocket{
 		return session.isOpen();
 	}
 	/**
-	 * Flushes the output stream. Flush is called automatically when client events complete.
-	 *You need to explicitly call it at the end of server events.
+	 * Does not do anything. Kept for backward compatibility.
 	 */
 	public void Flush() throws IOException {
-		if (shouldFlushOutput) {
-			session.getRemote().flush();
-			shouldFlushOutput = false;
-		}
+
 	}
 	
 	private void sendText(String s) throws IOException {
-		session.getRemote().sendString(s, null);
-		shouldFlushOutput = true;
+		session.sendText(s, Callback.NOOP);
+//		shouldFlushOutput = true;
 	}
 	private SimpleFuture get(String etype, Map m) {
 		JSONGenerator jg = new JSONGenerator();
@@ -350,14 +356,14 @@ public class WebSocket{
 	 */
 	public ServletRequestWrapper getUpgradeRequest() {
 		return (ServletRequestWrapper) AbsObjectWrapper.ConvertToWrapper(new ServletRequestWrapper(),
-				((JettyServerUpgradeRequest)session.getUpgradeRequest()).getHttpServletRequest());
+			adapter.upgradeRequest);
 	}
 	/**
 	 * Returns the http session object which is tied to the current user.
 	 */
 	public HttpSessionWrapper getSession() {
 		return (HttpSessionWrapper) AbsObjectWrapper.ConvertToWrapper(new HttpSessionWrapper(),
-				((JettyServerUpgradeRequest)session.getUpgradeRequest()).getHttpServletRequest().getSession());
+				(adapter.upgradeRequest).getSession());
 	}
 	/**
 	 * Closes the WebSocket connection.

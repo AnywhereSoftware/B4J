@@ -14,21 +14,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
- package anywheresoftware.b4j.object;
 
-import java.io.File;
+package anywheresoftware.b4j.object;
+
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Method;
-import java.util.Collection;
+import java.nio.ByteBuffer;
+import java.nio.channels.SeekableByteChannel;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.util.Enumeration;
 import java.util.Map.Entry;
 import java.util.concurrent.CountDownLatch;
 
-import org.eclipse.jetty.server.MultiPartFormInputStream;
-import org.eclipse.jetty.server.MultiPartFormInputStream.MultiPart;
+import org.eclipse.jetty.http.HttpStatus;
+import org.eclipse.jetty.http.MultiPart;
+import org.eclipse.jetty.http.MultiPartFormData;
+import org.eclipse.jetty.io.Content;
+import org.eclipse.jetty.io.Content.Chunk;
 import org.eclipse.jetty.server.Response;
+import org.eclipse.jetty.util.Blocker;
 
 import anywheresoftware.b4a.AbsObjectWrapper;
 import anywheresoftware.b4a.B4AClass;
@@ -38,12 +46,12 @@ import anywheresoftware.b4a.BA.RaisesSynchronousEvents;
 import anywheresoftware.b4a.BA.ShortName;
 import anywheresoftware.b4a.objects.collections.List;
 import anywheresoftware.b4a.objects.collections.Map;
+import anywheresoftware.b4a.objects.streams.File;
 import anywheresoftware.b4a.objects.streams.File.InputStreamWrapper;
 import anywheresoftware.b4a.objects.streams.File.OutputStreamWrapper;
 import jakarta.servlet.Filter;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.FilterConfig;
-import jakarta.servlet.MultipartConfigElement;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
@@ -51,7 +59,6 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.Part;
 
 @Hide
 public class JServlet extends HttpServlet implements Filter{
@@ -73,6 +80,7 @@ public class JServlet extends HttpServlet implements Filter{
 		}
 		return m;
 	}
+	@SuppressWarnings("deprecation")
 	public static B4AClass createInstance(Class<?> handlerClass, Method initializeMethod) throws Exception {
 		B4AClass handler = (B4AClass)handlerClass.newInstance();
 		initializeMethod.invoke(handler, (Object)null);
@@ -89,7 +97,7 @@ public class JServlet extends HttpServlet implements Filter{
 	}
 	@Override
 	public void init(FilterConfig filterConfig) throws ServletException {
-		
+
 	}
 	@Override
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -107,7 +115,11 @@ public class JServlet extends HttpServlet implements Filter{
 	protected void doPut(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		Handle(request, response, null);
 	}
-		
+	@Override
+	protected void doPatch(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		Handle(request, response, null);
+	}
+
 	private void Handle(HttpServletRequest request, HttpServletResponse response, FilterChain chain) {
 		Handle h = new Handle(request, response, chain);
 		if (singleThread && 
@@ -218,7 +230,7 @@ public class JServlet extends HttpServlet implements Filter{
 			return s == null ? "" : s;
 		}
 		/**
-		 * Returns the HTTP method (GET or POST).
+		 * Returns the HTTP method (GET, POST, PUT, DELETE or PATCH).
 		 */
 		public String getMethod() {
 			return getObject().getMethod();
@@ -239,7 +251,7 @@ public class JServlet extends HttpServlet implements Filter{
 		 * Returns the client IP address.
 		 */
 		public String getRemoteAddress() {
-			return getObject().getRemoteAddr();
+			return BA.ReturnString(getObject().getRemoteAddr());
 		}
 		/**
 		 * Returns the parameter value or an empty string if the parameter does not exist.
@@ -248,6 +260,9 @@ public class JServlet extends HttpServlet implements Filter{
 			String h = getObject().getParameter(Name);
 			return h == null ? "" : h;
 		}
+		/**
+		 * Returns an array with all parameter values with the given key.
+		 */
 		public String[] GetParameterValues(String Name) {
 			String[] s = getObject().getParameterValues(Name);
 			if (s == null)
@@ -274,19 +289,45 @@ public class JServlet extends HttpServlet implements Filter{
 		/**
 		 * Parses a multipart request and returns a Map with the parsed Parts as values and the parts names as keys.
 		 *Folder - The files will be saved in this folder.
-		 *MaxSize - The request maximum size.
+		 *MaxSize - The request maximum size in bytes.
 		 */
 		public Map GetMultipartData(String Folder, long MaxSize) throws IOException, ServletException {
-			MultipartConfigElement config = new MultipartConfigElement(Folder, MaxSize, MaxSize, 81920);
-			MultiPartFormInputStream in = new MultiPartFormInputStream(getObject().getInputStream(), getObject().getContentType(), config,  new File(Folder));
-			Collection<Part> parts = in.getParts();
-			Map m = new Map();
-			m.Initialize();
-			for (Part p : parts) {
-				MultiPartFormInputStream.MultiPart mp = (MultiPartFormInputStream.MultiPart)p;
-				m.Put(mp.getName(),  mp);
+			String contentType = getObject().getContentType();
+			String boundary = MultiPart.extractBoundary(contentType);
+			MultiPartFormData.Parser parser = new MultiPartFormData.Parser(boundary);
+			parser.setMaxMemoryFileSize(MaxSize);
+			parser.setUseFilesForPartsWithoutFileName(false);
+			parser.setMaxFileSize(MaxSize);
+			parser.setFilesDirectory(Path.of(Folder));
+			try (Blocker.Promise<MultiPartFormData.Parts> promise = Blocker.promise())
+			{
+				parser.parse(Content.Source.from(getObject().getInputStream()), promise);
+				MultiPartFormData.Parts parts = promise.block();
+				Map m = new Map();
+				m.Initialize();
+				for (MultiPart.Part p : parts) {
+					if (p.getFileName() != null && !(p instanceof MultiPart.PathPart)) {
+						Path f = Files.createTempFile(Path.of(Folder), "MultiPart", "");
+						try (SeekableByteChannel fileChannel = Files.newByteChannel(f, StandardOpenOption.WRITE, StandardOpenOption.APPEND)) {
+							Content.Source source = p.getContentSource();
+							while (true) {
+								Chunk chunk = source.read();
+								ByteBuffer buffer = chunk.getByteBuffer();
+								while (buffer.hasRemaining())
+									fileChannel.write(buffer);
+								chunk.release();
+								if (chunk.isLast())
+									break;
+
+							}
+						}
+						System.out.println("converting to path");
+						p = new MultiPart.PathPart(null, p.getName(), p.getFileName(), p.getHeaders(), f);
+					}
+					m.Put(p.getName(),  p);
+				}
+				return m;
 			}
-			return m;
 		}
 		/**
 		 * Returns an array with the request cookies.
@@ -300,56 +341,44 @@ public class JServlet extends HttpServlet implements Filter{
 				cw[i] = (CookieWrapper)AbsObjectWrapper.ConvertToWrapper(new CookieWrapper(), c[i]);
 			return cw;
 		}
-		
+
 
 	}
 	@ShortName("Part")
-	public static class PartWrapper extends AbsObjectWrapper<MultiPart> {
+	public static class PartWrapper extends AbsObjectWrapper<MultiPart.Part> {
 		/**
-		 * <b>This method should not be used. Call TempFile instead to get the file.</b>
+		 * Returns true if the part is a file (has a filename).
 		 */
 		public boolean getIsFile() {
-			return getObject().getFile() != null;
+			return getSubmittedFilename().length() > 0;
 		}
 		/**
-		 * Returns the submitted file name.
+		 * Returns the submitted file name or empty string if not a file part.
 		 */
 		public String getSubmittedFilename() {
-			return BA.ReturnString(getObject().getSubmittedFileName());
+			return BA.ReturnString(getObject().getFileName());
 		}
 		/**
 		 * Returns the path to the temporary file.
 		 */
 		public String getTempFile() throws IOException {
-			if (getObject().getFile() == null) {
-				try {
-					Method m = MultiPart.class.getDeclaredMethod("createFile");
-					m.setAccessible(true);
-					m.invoke(getObject());
-					m = MultiPart.class.getDeclaredMethod("close");
-					m.setAccessible(true);
-					m.invoke(getObject());
-				} catch (Exception e) {
-					throw new RuntimeException(e);
-				}
-			}
-			return getObject().getFile().getCanonicalPath();
+			return ((MultiPart.PathPart)getObject()).getPath().toString();
 		}
 		/**
 		 * Returns the string value of this part. This should only be used with non-files parts.
 		 */
 		public String GetValue(String CharacterEncoding) throws UnsupportedEncodingException {
-			return new String(getObject().getBytes(), (CharacterEncoding == null || CharacterEncoding == "") ? "UTF8" : CharacterEncoding);
+			return getObject().getContentAsString(CharacterEncoding.length() == 0 ? null : Charset.forName(CharacterEncoding));
 		}
 	}
-	
+
 	@ShortName("ServletResponse")
 	public static class ServletResponseWrapper extends AbsObjectWrapper<HttpServletResponse>  {
 		/**
 		 * Returns the error string that is tied to this response. This is useful with handlers that act as custom error pages.
 		 */
 		public String getErrorReason() {
-			return BA.ReturnString(getObject() instanceof Response ? ((Response)getObject()).getReason() : "");
+			return BA.ReturnString(getObject() instanceof Response ? HttpStatus.getMessage(((Response)getObject()).getStatus()) : "");
 		}
 		/**
 		 * Writes the text to the response stream.
@@ -433,5 +462,5 @@ public class JServlet extends HttpServlet implements Filter{
 		}
 	}
 
-	
+
 }
