@@ -68,7 +68,7 @@ import jakarta.servlet.Filter;
 		@CustomClass(name = "Server Filter", fileNameWithoutExtension = "server_filter"),
 		@CustomClass(name = "Server WebSocket", fileNameWithoutExtension = "server_websocket")
 })
-@Version(5.00f)
+@Version(5.02f)
 @ShortName("Server")
 @DependsOn(values={"json", "jserver/c3p0-0.13.0.jar",
 		"jserver/c3p0-oracle-thin-extras-0.9.5.jar",
@@ -213,6 +213,8 @@ public class ServerWrapper {
 		}
 		for (Connector connector : connectors)
 			server.addConnector(connector);
+		if (File.Exists(staticFiles, "") == false)
+			File.MakeDir(staticFiles, "");
 		context.setBaseResourceAsString(staticFiles);
 		final boolean debug = BA.isShellModeRuntimeCheck(ba);
 		for (HandlerData hd : handlers) {
@@ -418,7 +420,7 @@ public class ServerWrapper {
 	 * Adds a filter that protects against intentional or unintentional denial of service attacks.
 	 *It restricts the number of requests sent from the same connection.
 	 *Path - The filter will be mapped to the given path. You can use wildcards in the path.
-	 *Settings - An optional map with various settings. See this link: <link>DoS Filter Documentation|http://www.eclipse.org/jetty/documentation/9.4.x/dos-filter.html</link>
+	 *Settings - An optional map with various settings. See this link: <link>DoS Filter Documentation|https://javadoc.jetty.org/jetty-12/org/eclipse/jetty/ee10/servlets/DoSFilter.html</link>
 	 *
 	 *Example:<code>srvr.AddDoSFilter("/*", Null)</code>
 	 */
@@ -455,7 +457,7 @@ public class ServerWrapper {
 	}
 	/**
 	 * A Map with configuration parameters that affect the way the server serves static files.
-	 *See this link for more information: <link>http://download.eclipse.org/jetty/stable-9/apidocs/org/eclipse/jetty/servlet/DefaultServlet.html|http://download.eclipse.org/jetty/stable-9/apidocs/org/eclipse/jetty/servlet/DefaultServlet.html</link>.
+	 *See this link for more information: <link>https://javadoc.jetty.org/jetty-12.1/org/eclipse/jetty/ee11/servlet/ResourceServlet.html|https://javadoc.jetty.org/jetty-12.1/org/eclipse/jetty/ee11/servlet/ResourceServlet.html</link>.
 	 */
 	public void SetStaticFilesOptions(Map Options) {
 		staticFilesOptions = new HashMap<String, String>();
@@ -474,7 +476,7 @@ public class ServerWrapper {
 	}
 	/**
 	 * Gets or sets the log format.
-	 *The format is documented <link>here|https://www.eclipse.org/jetty/javadoc/jetty-11/org/eclipse/jetty/server/CustomRequestLog.html</link>.
+	 *The format is documented <link>here|https://javadoc.jetty.org/jetty-12/org/eclipse/jetty/server/CustomRequestLog.html</link>.
 	 */
 	public String getLogFormat() {
 		return customLogFormat;

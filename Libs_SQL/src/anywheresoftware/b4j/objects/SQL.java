@@ -122,7 +122,7 @@ public class SQL implements CheckForReinitialize{
 	/**
 	 * Opens the SQLite database file. A new database will be created if it does not exist and CreateIfNecessary is true.
 	 *Note that you should add the following attribute to the main module:
-	 *<code>#AdditionalJar: sqlite-jdbc-3.7.2</code>
+	 *<code>#AdditionalJar: sqlite-jdbc</code>
 	 *Example:<code>
 	 *Dim SQL1 As SQL
 	 *SQL1.InitializeSQLite(File.DirApp, "MyDb.db", True)</code>

@@ -112,7 +112,10 @@ public class WebSocketModule {
 		}
 		public boolean start() throws InterruptedException {
 			if (parentServlet.singleThread) {
-				BA.firstInstance.postRunnable(handler);
+				if (BA.firstInstance.getOwnerThread() == Thread.currentThread())
+					handler.run();
+				else
+					BA.firstInstance.postRunnable(handler);
 			}
 			else {
 				Servlet.pool.submit(handler);

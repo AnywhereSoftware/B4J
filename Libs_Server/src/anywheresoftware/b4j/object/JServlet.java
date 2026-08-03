@@ -46,7 +46,6 @@ import anywheresoftware.b4a.BA.RaisesSynchronousEvents;
 import anywheresoftware.b4a.BA.ShortName;
 import anywheresoftware.b4a.objects.collections.List;
 import anywheresoftware.b4a.objects.collections.Map;
-import anywheresoftware.b4a.objects.streams.File;
 import anywheresoftware.b4a.objects.streams.File.InputStreamWrapper;
 import anywheresoftware.b4a.objects.streams.File.OutputStreamWrapper;
 import jakarta.servlet.Filter;

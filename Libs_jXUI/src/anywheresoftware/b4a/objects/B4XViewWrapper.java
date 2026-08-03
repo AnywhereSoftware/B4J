@@ -1219,6 +1219,7 @@ public class B4XViewWrapper extends AbsObjectWrapper<Object>{
 			return DesignerArgs.targetsCache.get(Module.toLowerCase(BA.cul));
 		}
 		
+		
 	}
 
 }

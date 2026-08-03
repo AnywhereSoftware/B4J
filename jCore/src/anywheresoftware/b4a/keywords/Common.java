@@ -57,7 +57,7 @@ import anywheresoftware.b4a.objects.streams.File;
 /**
  * These are the internal keywords.
  */
-@Version(10.51f)
+@Version(10.60f)
 public class Common {
 
 	@Hide
@@ -672,6 +672,12 @@ public class Common {
 	 */
 	public static String BytesToString(byte[] Data, int StartOffset, int Length, String CharSet) throws UnsupportedEncodingException {
 		return new String(Data, StartOffset, Length, CharSet);
+	}
+	/**
+	 * Raises an exception.
+	 */
+	public static void ThrowException(String Message) {
+		throw new RuntimeException(Message);
 	}
 	/**
 	 * Gets the value of the system property mapped to the given key.
