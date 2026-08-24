@@ -44,7 +44,7 @@ import anywheresoftware.b4a.BA.Version;
 @ShortName("MqttClient")
 @Events(values={"Connected (Success As Boolean)", "Disconnected", "MessageArrived (Topic As String, Payload() As Byte)", })
 @Permissions(values={"android.permission.INTERNET"})
-@Version(1.26f)
+@Version(1.30f)
 @DependsOn(values= {"org.eclipse.paho.client.mqttv3-1.2.5"})
 public class MqttAsyncClientWrapper{
 	public static final int QOS_0_MOST_ONCE = 0;
@@ -52,6 +52,14 @@ public class MqttAsyncClientWrapper{
 	public static final int QOS_2_EXACTLY_ONCE = 2;
 	@Hide
 	public MqttAsyncClient client;
+	/**
+	 * Duration to wait before closing connection, to allow existing communication to complete. Default value is 30000 ms (30 seconds).
+	 */
+	public long QUIESCE_TIMEOUT = 30000L;
+	/**
+	 * Timeout for the "disconnect" packet. Default value is 10000 ms (10 seconds).
+	 */
+	public long DISCONNECT_TIMEOUT = 10000L;
 	private BA ba;
 	private String eventName;
 	
@@ -163,7 +171,7 @@ public class MqttAsyncClientWrapper{
 		client.publish(Topic, Payload, QOS, Retained);
 	}
 	/**
-	 * Asynchronously closes the connection.
+	 * Asynchronously closes the connection. QUIESCE_TIMEOUT and DISCONNECT_TIMEOUT are applied during the process.
 	 */
 	public void Close() throws MqttException {
 		if (client == null)
@@ -173,7 +181,7 @@ public class MqttAsyncClientWrapper{
 			@Override
 			public void run() {
 				try {
-					client.disconnectForcibly();
+					client.disconnectForcibly(QUIESCE_TIMEOUT, DISCONNECT_TIMEOUT);
 					client.close();
 				} catch (Exception e) {
 					e.printStackTrace();

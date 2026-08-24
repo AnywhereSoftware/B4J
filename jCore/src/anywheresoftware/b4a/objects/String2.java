@@ -17,6 +17,7 @@
  
  package anywheresoftware.b4a.objects;
 
+import anywheresoftware.b4a.BA.DefaultValue;
 import anywheresoftware.b4a.BA.DesignerName;
 
 /**
@@ -151,10 +152,10 @@ public abstract class String2 {
 	 * Encodes the string into a new array of bytes.
 	 * Example:<code>
 	 * Dim Data() As Byte
-	 * Data = "Some string".GetBytes("UTF8")</code>
+	 * Data = "Some string".GetBytes("UTF-8")</code>
 	 */
 	@DesignerName("GetBytes")
-	public abstract byte[] getBytes(String Charset);
+	public abstract byte[] getBytes(@DefaultValue("UTF-8") String Charset);
 	
 	
 }

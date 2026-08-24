@@ -23,6 +23,7 @@ import java.util.Comparator;
 
 import anywheresoftware.b4a.AbsObjectWrapper;
 import anywheresoftware.b4a.BA;
+import anywheresoftware.b4a.BA.DefaultValue;
 import anywheresoftware.b4a.BA.IterableList;
 import anywheresoftware.b4a.BA.ShortName;
 import anywheresoftware.b4a.BA.WarningEngine;
@@ -152,7 +153,7 @@ public class List extends AbsObjectWrapper<java.util.List<Object>> implements It
 	 *The items must all be numbers or strings.
 	 */
 	@SuppressWarnings("unchecked")
-	public void Sort(boolean Ascending) {
+	public void Sort( @DefaultValue("True") boolean Ascending) {
 		if (Ascending)
 			Collections.sort((java.util.List)getObject());
 		else {
@@ -190,7 +191,7 @@ public class List extends AbsObjectWrapper<java.util.List<Object>> implements It
 	 *	Next
 	 *End Sub</code>
 	 */
-	public void SortType(String FieldName, final boolean Ascending) throws SecurityException, NoSuchFieldException {
+	public void SortType(String FieldName, @DefaultValue("True") final boolean Ascending) throws SecurityException, NoSuchFieldException {
 		sortList(FieldName, Ascending, false);
 	}
 	/**
@@ -199,7 +200,7 @@ public class List extends AbsObjectWrapper<java.util.List<Object>> implements It
 	public void SortTypeCaseInsensitive(String FieldName, final boolean Ascending) throws SecurityException, NoSuchFieldException {
 		sortList(FieldName, Ascending, true);
 	}
-	private void sortList(String FieldName, final boolean Ascending,final boolean caseInsensitive) throws SecurityException, NoSuchFieldException {
+	private void sortList(String FieldName,  @DefaultValue("True") final boolean Ascending,  @DefaultValue("False") final boolean caseInsensitive) throws SecurityException, NoSuchFieldException {
 		if (getSize() == 0)
 			return;
 		final Object o1 = Get(0);
@@ -230,7 +231,7 @@ public class List extends AbsObjectWrapper<java.util.List<Object>> implements It
 	 *The items must all be numbers or strings.
 	 */
 	@SuppressWarnings("unchecked")
-	public void SortCaseInsensitive(boolean Ascending) {
+	public void SortCaseInsensitive(@DefaultValue("True") boolean Ascending) {
 		if (Ascending) {
 			Collections.sort((java.util.List)getObject(), new Comparator<Comparable>() {
 				@Override

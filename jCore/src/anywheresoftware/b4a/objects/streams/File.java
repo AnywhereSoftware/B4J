@@ -40,6 +40,7 @@ import java.util.Properties;
 
 import anywheresoftware.b4a.AbsObjectWrapper;
 import anywheresoftware.b4a.BA;
+import anywheresoftware.b4a.BA.DefaultValue;
 import anywheresoftware.b4a.BA.Hide;
 import anywheresoftware.b4a.BA.ShortName;
 import anywheresoftware.b4a.keywords.Bit;
@@ -462,7 +463,7 @@ public class File {
 	 *If Append is true then the new data will be written at the end of the existing file.
 	 *This method does not support files in the assets folder.
 	 */
-	public static OutputStreamWrapper OpenOutput(String Dir, String FileName, boolean Append) throws FileNotFoundException {
+	public static OutputStreamWrapper OpenOutput(String Dir, String FileName, @DefaultValue("False") boolean Append) throws FileNotFoundException {
 		if ("".equals(Dir))
 			Dir = null;
 		OutputStreamWrapper o = new OutputStreamWrapper();

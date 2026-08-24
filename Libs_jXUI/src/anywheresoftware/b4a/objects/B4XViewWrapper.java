@@ -75,6 +75,7 @@ import anywheresoftware.b4a.B4AClass;
 import anywheresoftware.b4a.BA;
 import anywheresoftware.b4a.BA.CustomClass;
 import anywheresoftware.b4a.BA.CustomClasses;
+import anywheresoftware.b4a.BA.DefaultValue;
 import anywheresoftware.b4a.BA.Hide;
 import anywheresoftware.b4a.BA.IterableList;
 import anywheresoftware.b4a.BA.RaisesSynchronousEvents;
@@ -101,7 +102,7 @@ import anywheresoftware.b4j.xui.CSSUtils;
 /**
  * A generic view. Any view can be treated as a B4XView.
  */
-@Version(2.31f)
+@Version(2.35f)
 @ShortName("B4XView")
 public class B4XViewWrapper extends AbsObjectWrapper<Object>{
 	public static final int TOUCH_ACTION_DOWN = 0;
@@ -1116,7 +1117,8 @@ public class B4XViewWrapper extends AbsObjectWrapper<Object>{
 		 *	Log("Deleted!!!")
 		 *End If</code>
 		 */
-		public static Object Msgbox2Async(BA ba, String Message, String Title, String Positive, String Cancel, String Negative, Image Icon) throws Exception {
+		public static Object Msgbox2Async(BA ba, String Message, String Title, @DefaultValue("Yes") String Positive, @DefaultValue("Cancel") String Cancel,
+				@DefaultValue("No") String Negative, @DefaultValue("Null") Image Icon) throws Exception {
 			return Msgbox2AsyncImpl(ba, Message, Title, Positive, Cancel, Negative, Icon, AlertType.NONE);
 			
 		}

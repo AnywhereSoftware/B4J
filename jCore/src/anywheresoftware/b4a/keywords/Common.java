@@ -35,6 +35,7 @@ import anywheresoftware.b4a.AbsObjectWrapper;
 import anywheresoftware.b4a.B4AClass;
 import anywheresoftware.b4a.BA;
 import anywheresoftware.b4a.BA.CustomClasses;
+import anywheresoftware.b4a.BA.DefaultValue;
 import anywheresoftware.b4a.BA.CustomClass;
 import anywheresoftware.b4a.BA.DesignerName;
 import anywheresoftware.b4a.BA.Hide;
@@ -57,7 +58,7 @@ import anywheresoftware.b4a.objects.streams.File;
 /**
  * These are the internal keywords.
  */
-@Version(10.60f)
+@Version(10.70f)
 public class Common {
 
 	@Hide
@@ -121,7 +122,7 @@ public class Common {
 	 *Log(NumberFormat(12345.6789, 0, 2)) '"12,345.68"
 	 *Log(NumberFormat(1, 3 ,0)) '"001"</code>
 	 */
-	public static synchronized String NumberFormat(double Number, int MinimumIntegers, int MaximumFractions) {
+	public static synchronized String NumberFormat(double Number, @DefaultValue("1") int MinimumIntegers, @DefaultValue("2") int MaximumFractions) {
 		if (numberFormat == null)
 			numberFormat = java.text.NumberFormat.getInstance(Locale.US);
 		numberFormat.setMaximumFractionDigits(MaximumFractions);
@@ -135,8 +136,8 @@ public class Common {
 	 *Example:<code>
 	 *Log(NumberFormat2(12345.67, 0, 3, 3, false)) '"12345.670"</code>
 	 */
-	public static synchronized String NumberFormat2(double Number, int MinimumIntegers, int MaximumFractions, int MinimumFractions,
-			boolean GroupingUsed) {
+	public static synchronized String NumberFormat2(double Number, @DefaultValue("1") int MinimumIntegers, @DefaultValue("2") int MaximumFractions,
+			@DefaultValue("0") int MinimumFractions, @DefaultValue("True") boolean GroupingUsed) {
 		if (numberFormat2 == null)
 			numberFormat2 = java.text.NumberFormat.getInstance(Locale.US);
 		numberFormat2.setMaximumFractionDigits(MaximumFractions);
@@ -664,14 +665,15 @@ public class Common {
 	 * Decodes the given bytes array as a string.
 	 *Data - The bytes array.
 	 *StartOffset - The first byte to read.
-	 *Length - Number of bytes to read.
+	 *Length - Number of bytes to read. -1 to read all available bytes.
 	 *CharSet - The name of the character set.
 	 *Example:<code>
 	 *Dim s As String
 	 *s = BytesToString(Buffer, 0, Buffer.Length, "UTF-8")</code>
 	 */
-	public static String BytesToString(byte[] Data, int StartOffset, int Length, String CharSet) throws UnsupportedEncodingException {
-		return new String(Data, StartOffset, Length, CharSet);
+	public static String BytesToString(byte[] Data, @DefaultValue("0") int StartOffset, @DefaultValue("-1")int Length,
+			@DefaultValue("UTF-8") String CharSet) throws UnsupportedEncodingException {
+		return new String(Data, StartOffset, Length == -1 ? Data.length : Length, CharSet);
 	}
 	/**
 	 * Raises an exception.
@@ -683,7 +685,7 @@ public class Common {
 	 * Gets the value of the system property mapped to the given key.
 	 *Returns the DefaultValue parameter if there is no such property.
 	 */
-	public static String GetSystemProperty(String Key, String DefaultValue) {
+	public static String GetSystemProperty(String Key, @DefaultValue("") String DefaultValue) {
 		return System.getProperty(Key, DefaultValue);
 	}
 	/**
@@ -696,7 +698,7 @@ public class Common {
 	 * Returns the value of the environment variable mapped to the given key.
 	 *Returns the DefaultValue parameter if there is no such variable.
 	 */
-	public static String GetEnvironmentVariable(String Key, String DefaultValue) {
+	public static String GetEnvironmentVariable(String Key, @DefaultValue("") String DefaultValue) {
 		String r = System.getenv(Key);
 		return r == null ? DefaultValue : r;
 	}

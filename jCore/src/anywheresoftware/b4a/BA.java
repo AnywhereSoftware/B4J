@@ -638,6 +638,10 @@ public abstract class BA {
 	public static @interface Hide {}
 	@Hide
 	public static @interface Pixel {}
+	@Hide
+	public static @interface DefaultValue {
+		String value();
+	}
 	@Retention(RetentionPolicy.RUNTIME)
 	@Hide
 	public static @interface ShortName {
