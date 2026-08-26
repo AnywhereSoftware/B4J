@@ -33,6 +33,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import anywheresoftware.b4a.AbsObjectWrapper;
 import anywheresoftware.b4a.BA;
+import anywheresoftware.b4a.BA.DefaultValue;
 import anywheresoftware.b4a.BA.Events;
 import anywheresoftware.b4a.BA.IterableList;
 import anywheresoftware.b4a.BA.ShortName;
@@ -41,7 +42,7 @@ import anywheresoftware.b4a.keywords.Common;
 
 @ShortName("JavaObject")
 @Events(values={"Event (MethodName As String, Args() As Object) As Object"})
-@Version(2.07f)
+@Version(2.10f)
 public class JavaObject extends AbsObjectWrapper<Object>{
 	private static final FieldCache fieldCache = new FieldCache();
 	private static final MethodCache methodCache = new MethodCache();
@@ -100,7 +101,7 @@ public class JavaObject extends AbsObjectWrapper<Object>{
 	 *ClassName - The full class name.
 	 *Params - An array of objects to pass to the constructor (or Null).
 	 */
-	public JavaObject InitializeNewInstance(String ClassName, Object[] Params) throws Exception {
+	public JavaObject InitializeNewInstance(String ClassName, @DefaultValue("Null") Object[] Params) throws Exception {
 		Class<?> cls = getCorrectClassName(ClassName);
 		if (Params == null || Params.length == 0) {
 			setObject(cls.newInstance());
@@ -135,7 +136,7 @@ public class JavaObject extends AbsObjectWrapper<Object>{
 	 *MethodName - The case-sensitive method name.
 	 *Params - Method parameters (or Null).
 	 */
-	public Object RunMethod(String MethodName, Object[] Params) throws Exception{
+	public Object RunMethod(String MethodName, @DefaultValue("Null") Object[] Params) throws Exception{
 		Class<?> cls = getCurrentClass();
 		List<Method> mm = methodCache.getMethod(cls.getName(), MethodName, Params);
 		Method method = null;
@@ -155,7 +156,7 @@ public class JavaObject extends AbsObjectWrapper<Object>{
 	/**
 	 * Similar to RunMethod. Returns a JavaObject instead of Object.
 	 */
-	public JavaObject RunMethodJO(String MethodName, Object[] Params) throws Exception {
+	public JavaObject RunMethodJO(String MethodName, @DefaultValue("Null") Object[] Params) throws Exception {
 		return (JavaObject)AbsObjectWrapper.ConvertToWrapper(new JavaObject(), RunMethod(MethodName, Params));
 	}
 
