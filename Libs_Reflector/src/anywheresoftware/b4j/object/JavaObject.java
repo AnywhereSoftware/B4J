@@ -35,7 +35,6 @@ import anywheresoftware.b4a.AbsObjectWrapper;
 import anywheresoftware.b4a.BA;
 import anywheresoftware.b4a.BA.DefaultValue;
 import anywheresoftware.b4a.BA.Events;
-import anywheresoftware.b4a.BA.IterableList;
 import anywheresoftware.b4a.BA.ShortName;
 import anywheresoftware.b4a.BA.Version;
 import anywheresoftware.b4a.keywords.Common;
@@ -332,7 +331,9 @@ public class JavaObject extends AbsObjectWrapper<Object>{
 			}
 			Field m = classFields.get(fieldName);
 			if (m == null)
+			{
 				throw new RuntimeException("Field: " + fieldName + " not found in: " + className);
+			}
 			return m;
 		}
 	}

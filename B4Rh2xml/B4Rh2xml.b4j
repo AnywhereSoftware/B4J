@@ -1,0 +1,31 @@
+﻿AppType=StandardJava
+Build1=Default,b4j.example
+Group=Default Group
+Library1=jcore
+Library2=xmlbuilder
+Module1=Parser
+NumberOfFiles=0
+NumberOfLibraries=2
+NumberOfModules=1
+Version=10.7
+@EndOfDesignText@
+'Non-UI application (console / server application)
+#Region  Project Attributes 
+	#CommandLineArgs:
+	#MergeLibraries: True 
+#End Region
+
+Sub Process_Globals
+
+End Sub
+
+Sub AppStart (Args() As String)
+	Dim PP As Parser
+	PP.Initialize
+	Dim libray As String = "rCore"
+	Args = Array As String($"C:\Users\H\Documents\Visual Studio 2013\Projects\B4R\B4R\bin\Debug\libraries\${libray}\${libray}.h"$, _
+		$"C:\Users\H\Documents\Visual Studio 2013\Projects\B4R\B4R\bin\Debug\libraries\${libray}.xml"$)
+'	Args = Array As String($"C:\Users\H\Documents\AdditionalLibs\B4R\${libray}\${libray}.h"$, _
+'			$"C:\Users\H\Documents\AdditionalLibs\B4R\${libray}.xml"$)
+	PP.Parse(Args(0), Args(1))
+End Sub

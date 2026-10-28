@@ -1,0 +1,101 @@
+﻿AppType=JavaFX
+Build1=Default,b4j.example
+File1=b4x_bridge.zip
+File2=Layout1.bjl
+FileGroup1=Default Group
+FileGroup2=Default Group
+Group=Default Group
+Library1=javaobject
+Library2=jcore
+Library3=jfx
+Library4=jnetwork
+Library5=jrandomaccessfile
+Library6=jshell
+Library7=jxui
+Library8=b4xcollections
+Module1=PyBridge
+Module2=PyComm
+Module3=PyErrorHandler
+Module4=PyUtils
+Module5=PyWrapper
+NumberOfFiles=2
+NumberOfLibraries=8
+NumberOfModules=5
+Version=10.3
+@EndOfDesignText@
+#Region Project Attributes 
+	#MainFormWidth: 600
+	#MainFormHeight: 600 
+#End Region
+#MergeLibraries: false
+Sub Process_Globals
+	Private fx As JFX
+	Private MainForm As Form
+	Private xui As XUI 
+	Private Button1 As B4XView
+	Private Py As PyBridge
+	Private WebView1 As WebView
+	Type OcrPoint (X As Int, Y As Int)
+	Type OcrResult (Points As List, Text As String, Score As Double)
+	Type PyTest (Aaa As Long, Bbb As String)
+End Sub
+
+Sub AppStart (Form1 As Form, Args() As String)
+	MainForm = Form1
+	MainForm.RootPane.LoadLayout("Layout1")
+	MainForm.Show
+	Py.Initialize(Me, "Py")
+	Start
+End Sub
+
+Sub Button1_Click
+	
+End Sub
+
+Private Sub Bridge_Disconnected
+	Log("Disconnected")
+End Sub
+
+Private Sub MainForm_Closed
+	Py.KillProcess
+End Sub
+
+Private Sub Start
+'	Dim Linux As String = "/home/erel/python_env/bin/python"
+	Dim PythonPath As String = "D:\python\python\python.exe2"
+'	PythonPath = "/home/erel/python_env/bin/python"
+	Dim opt As PyOptions = Py.CreateOptions(PythonPath)
+'	opt.LocalPort = 53271
+'	opt.PythonExecutable = ""
+'	opt.ForceCopyBridgeSrc = True
+'	opt.PyCacheFolder = "C:\Users\H\Downloads\projects"
+	opt.TrackLineNumbers = False
+	Py.Start(opt)
+	Wait For Py_Connected (Success As Boolean)
+End Sub
+
+'Private Sub AsyncFunction As ResumableSub
+'	Dim Code As String = $"
+'import asyncio
+'
+'async def AsyncFunction():
+'	print("Hello!")
+'	await asyncio.sleep(1)  #Wait 1 second asynchronously
+'	print("I hope you're having a nice day!")
+'	return 10
+'"$
+'	Wait For (Py.RunCodeAwait("AsyncFunction", Array(), Code)) Complete (Result As PyWrapper)
+'	Return Result
+'End Sub
+
+
+Private Sub Py_Timer (Args As Map)
+	Log(Args.Get("a").As(PyTest).Bbb)
+	Dim p As PyTest
+	p.Initialize
+	p.Aaa = 23
+	p.Bbb = "afwqef"
+	Wait For (Py.WrapObject(p).Fetch) Complete (pp As PyWrapper)
+	Log(pp.Value)
+	
+End Sub

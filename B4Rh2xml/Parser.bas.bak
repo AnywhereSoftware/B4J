@@ -1,0 +1,399 @@
+﻿B4J=true
+Group=Default Group
+ModulesStructureVersion=1
+Type=Class
+Version=5.88
+@EndOfDesignText@
+'Class module
+Sub Class_Globals
+	Private builder As XMLBuilder
+	Type Clazz (name As String, _
+		ShortName As String, _
+		comment As String, _
+		ObjectWrapper As String, _
+		Events As List, _
+		Methods As Map, _
+		Properties As Map, _
+		Fields As Map, _
+		DesignerProperties As List, _
+		Helper As Boolean)
+	Type Method(name As String, _
+		DesignerName As String, _
+		Comment As String, _
+		Parameters As List, _
+		ReturnType As String, _
+		SyncEvents As Boolean, _
+		DefineMethod As Boolean)
+	Type Parameter (Name As String, _
+		parType As String, DefaultValue As String)
+	Private Classes As Map
+	Private version As Float
+	Private author As String
+	Private dependsOn As List
+	Private lineIndex As Int
+	Private lines As List
+	Private currentClass As Clazz
+	Private currentComment As String
+	Private folder As String
+	Private currentHelper As Boolean
+	Private currentHide As Boolean
+	Private currentShortname As String
+	Private currentEvents As List
+	Private currentDesignerProperties As List
+	Private currentObjectWrapper As String
+	Private currentRaisesSynchronousEvents As Boolean
+	Private namespace As String
+	Private publicSection As Boolean
+	Private primitiveTypes As Map
+End Sub
+
+Public Sub Initialize
+	Classes.Initialize
+	dependsOn.Initialize
+	currentEvents.Initialize
+	currentDesignerProperties.Initialize
+	primitiveTypes = CreateMap("byte": "", "char": "", "int": "", _
+		"uint": "", "long": "", "ulong": "", "float": "", "double": "", _
+		"bool": "")
+End Sub
+
+Public Sub Parse(SourcePath As String, TargetPath As String)
+	ParseH(File.GetFileParent(SourcePath), File.GetName(SourcePath))
+	WriteXML(TargetPath)
+End Sub
+
+Private Sub ParseH(Dir As String, filename As String)
+	folder = Dir
+	lines = File.ReadList(Dir, filename)
+	Do While lineIndex < lines.Size
+		ParseLine(lines.Get(lineIndex))
+		lineIndex = lineIndex + 1
+	Loop
+End Sub
+
+Private Sub ParseLine(line As String)
+	Dim trimmed As String = line.Trim
+	If trimmed.StartsWith("//~") Then
+		ParseSpecialComment(trimmed)
+	Else If trimmed.StartsWith("//") Then
+		ParseComment(False)
+	Else If trimmed.StartsWith("/**") Then
+		ParseComment(True)
+	Else If trimmed.StartsWith("class ") And trimmed.Contains(";") = False Then
+		ParseClass(trimmed)
+	Else if trimmed.StartsWith("namespace") Then
+		Dim m As Matcher = Regex.Matcher("namespace\s+(\w+)", trimmed)
+		m.Find
+		namespace = m.Group(1)
+	
+	Else If trimmed.StartsWith("};") Then
+		ParseEnd
+	Else If currentClass.IsInitialized Then
+		If trimmed.Contains(";") And publicSection Then
+			ParseMethod(trimmed)
+		Else if trimmed = "public:" Then
+			publicSection = True
+		Else If trimmed = "private:" Then
+			publicSection = False
+		Else
+			If trimmed.Length > 0 Then
+				currentComment = ""
+				If publicSection Then Log("Skipping: " & trimmed)
+			End If
+		End If
+	End If
+End Sub
+
+Private Sub ParseClass(line As String)
+	If currentHide = False Then
+		Dim currentClass As Clazz
+		currentClass.Initialize
+		currentClass.Events.Initialize
+		currentClass.Events.AddAll(currentEvents)
+		currentClass.comment = currentComment
+		currentClass.DesignerProperties.Initialize
+		currentClass.DesignerProperties.AddAll(currentDesignerProperties)
+		currentClass.Methods.Initialize
+		currentClass.Properties.Initialize
+		currentClass.Fields.Initialize
+		Dim m As Matcher = Regex.Matcher("class\s+(\w+)", line)
+		m.Find
+		currentClass.Name = namespace & "::" & m.Group(1)
+		currentClass.ShortName = currentShortname
+		currentClass.ObjectWrapper = currentObjectWrapper
+		currentClass.helper = currentHelper
+		Classes.Put(currentClass.Name, currentClass)
+	End If
+	currentComment = ""
+	currentEvents.Clear
+	currentDesignerProperties.Clear
+	currentShortname = ""
+	currentObjectWrapper = ""
+	publicSection = False
+End Sub
+
+Private Sub HandleDefine(line As String, m1 As Method) As String
+	If line.StartsWith("#define") Then
+		m1.defineMethod = True
+		Dim m As Matcher = Regex.Matcher("/\*([^;]+);", line)
+		m.Find
+		line = m.Group(1)
+	End If
+	Return line
+End Sub
+
+Private Sub ParseMethod(line As String)
+	If currentHide Then Return
+	Dim m1 As Method
+	m1.Initialize
+	m1.Parameters.Initialize
+	m1.Comment = currentComment
+	currentComment = ""
+	m1.SyncEvents = currentRaisesSynchronousEvents
+	currentRaisesSynchronousEvents = False
+	line = HandleDefine(line, m1)
+	If line.StartsWith("static") Then line = line.SubString("static".Length).Trim
+	If line.StartsWith("const") Then line = line.SubString("const".Length).Trim
+	If line.StartsWith("typedef") Then Return
+	Dim TypeAndName As Matcher = Regex.Matcher("\s*([\w\*]+)\s+(\w+)", line)
+	If TypeAndName.Find = False Then
+		Log("Error parsing: " & line)
+		Log("error" + 1)
+	End If
+	m1.ReturnType = ParseType(TypeAndName.Group(1))
+	m1.name = TypeAndName.Group(2)
+	m1.DesignerName = m1.name
+	If m1.defineMethod Then m1.name = currentClass.name.SubString(namespace.Length + 2) & "_" & m1.name
+	Do While TypeAndName.Find
+		Dim p As Parameter
+		p.Initialize
+		p.parType = ParseType(TypeAndName.Group(1))
+		p.name = TypeAndName.Group(2)
+		m1.Parameters.Add(p)
+	Loop
+	If line.Contains(")") Then
+		If currentClass.Methods.ContainsKey(m1.DesignerName) Then
+			Dim mm As Method = currentClass.Methods.Get(m1.DesignerName)
+			If mm.Name <> m1.Name Then
+				Log("Error: two or more methods with the same name: " & mm.DesignerName)
+			End If
+		End If
+		If currentHide = False Then
+			currentClass.Methods.Put(m1.DesignerName, m1)
+		Else
+			currentClass.Methods.Remove(m1.DesignerName)
+		End If
+	Else
+		currentClass.Fields.Put(m1.DesignerName, m1)
+	End If
+End Sub
+
+Private Sub ParseType(raw As String) As String
+	raw = raw.Trim
+	Dim i As Int
+	If raw.StartsWith("Array") Then
+		Dim t As String = raw.SubString("array".Length)
+		t = t & "[]"
+		Return t.Replace("*", "")
+	Else
+		If primitiveTypes.ContainsKey(raw.ToLowerCase) = False And raw.Contains("::") = False Then
+			If raw.StartsWith("Sub") = False And raw.StartsWith("Function") = False Then
+				raw = namespace & "::" & raw
+			End If
+		End If
+		Dim i As Int = raw.IndexOf("*")
+		If i > -1 Then
+			Dim t As String = raw.SubString2(0, i)
+			t = t.Trim & "*"
+			Return t
+		End If
+	End If
+	If raw = "byte" Then raw = "Byte"
+	Return raw
+End Sub
+
+Private Sub ParseEnd
+	If currentClass.IsInitialized = False Then Return
+	If currentClass.ShortName = "" Then
+		Log("No shortname for class: " & currentClass.Name)
+	End If
+	If publicSection = False And currentClass.Methods.Size = 0 Then
+		Log("No public members: " & currentClass.name)
+	End If
+	Dim currentClass As Clazz 'this line causes currentClass to point to a new (uninitialized) clazz.
+End Sub
+
+Private Sub ParseComment (multiple As Boolean)
+	Dim comment As StringBuilder
+	comment.Initialize
+	Do While lineIndex < lines.Size
+		Dim line As String = lines.Get(lineIndex)
+		line = line.Trim
+		If multiple Then
+			Dim ex As Boolean
+			If line.Contains("*/") Then
+				line = line.SubString2(0, line.IndexOf("*/"))
+				ex = True
+			End If
+			If line.StartsWith("/**") Then
+				line = line.SubString(3)
+			Else If line.StartsWith("*") Then
+				line = line.SubString(1)
+				If line.StartsWith(" ") Then line = line.SubString(1)
+			End If
+			comment.Append(line).Append(CRLF)
+			If ex Then Exit
+		Else
+			If line.StartsWith("//") Then
+				comment.Append(line.SubString(2)).Append(CRLF)
+			Else
+				Exit
+			End If
+		End If
+		lineIndex = lineIndex + 1
+	Loop
+	If Not(multiple) Then lineIndex = lineIndex - 1
+	currentComment = comment.ToString.Trim
+End Sub
+
+Private Sub ParseSpecialComment(line As String)
+	Dim command As String = line.SubString(3) 'remove //~
+	If command = "hide" Then
+		lineIndex = lineIndex + 1
+		currentHide = True
+		ParseLine(lines.Get(lineIndex))
+		currentHide = False
+	Else
+		Dim m As Matcher = Regex.Matcher("(\w+):(.*)", command)
+		If m.Find Then
+			Dim key As String = m.Group(1).ToLowerCase
+			Dim value As String = m.Group(2).Trim
+			Select key
+				Case "shortname"
+					currentShortname = value
+				Case "version"
+					version = value
+				Case "author"
+					author = value
+				Case "event"
+					currentEvents.Add(value)
+				Case "designerproperty"
+					currentDesignerProperties.Add(value)
+				Case "objectwrapper"
+					currentObjectWrapper = value
+				Case "raisessynchronousevents"
+					currentRaisesSynchronousEvents = value
+				Case "dependson"
+					dependsOn.Add(value)
+			End Select
+		End If
+	End If
+End Sub
+
+Private Sub WriteXML (TargetPath As String)
+	builder = builder.create("root")
+	builder.e("doclet-version-NOT-library-version").t("1.00").up
+	
+	For Each cls As Clazz In Classes.Values
+		If cls.Helper Then
+			Continue
+		End If
+		builder = builder.e("class")
+		builder.e("name").t(cls.Name).up
+		WriteElement("shortname", cls.ShortName)
+		WriteElement("objectwrapper", cls.ObjectWrapper)
+		WriteElement("comment", cls.comment)
+		WriteList("event", cls.Events)
+		WriteList("designerProperty", cls.DesignerProperties)
+		Dim properties As Map
+		properties.Initialize
+		FindProperties(properties, cls.Methods)
+		For Each p As Method In properties.Values
+			WriteMethod(p, "property")
+		Next
+		For Each m As Method In cls.Methods.Values
+			WriteMethod(m, "method")
+		Next
+		For Each field As Method In cls.Fields.Values
+			WriteMethod(field, "field")
+		Next
+		builder = builder.up
+	Next
+	If version > 0 Then	WriteElement("version", NumberFormat(version, 1, 2))
+	WriteElement("author", author)
+	WriteList("dependsOn", dependsOn)
+	builder.up
+	Dim props As Map
+	props.Initialize
+	props.Put("indent", "yes")
+	props.Put("{http://xml.apache.org/xslt}indent-amount", "4")
+	File.WriteString(TargetPath, "",builder.asString2(props))
+End Sub
+
+Sub FindProperties(Properties As Map, Methods As Map)
+	Dim methodsToRemove As List
+	methodsToRemove.Initialize
+	For Each m As Method In Methods.Values
+		If (m.name.StartsWith("get") And m.Parameters.Size = 0) Or _
+			(m.name.StartsWith("set") And m.Parameters.Size = 1) Then
+			Dim propName As String = m.name.SubString(3)
+			Dim p As Method
+			If Properties.ContainsKey(propName) = False Then
+				p.Initialize
+				p.Parameters.Initialize
+				
+				p.name = propName
+				Properties.Put(propName, p)
+			Else
+				p = Properties.Get(propName)
+			End If
+			If p.Comment = "" Then p.Comment = m.Comment
+			methodsToRemove.Add(m.DesignerName)
+			If m.Parameters.Size = 1 Then 'set
+				p.Parameters.Add(m.Parameters.Get(0))
+			else if m.Parameters.Size = 0 Then 'get
+				p.ReturnType = m.ReturnType
+			End If
+		End If
+	Next
+	For Each s As String In methodsToRemove
+		Methods.Remove(s)
+	Next
+		
+End Sub
+
+Private Sub WriteMethod(m As Method, mtype As String)
+	builder = builder.e(mtype)
+	builder = builder.e("name")
+	If m.DesignerName.Length > 0 Then builder.a("DesignerName", m.DesignerName)
+	If m.SyncEvents Then builder.a("RaisesSynchronousEvents", True)
+	If m.DefineMethod Then builder.a("DefineMethod", True)
+	builder = builder.t(m.Name).up
+	WriteElement("comment", m.Comment)
+	WriteElement("returntype", m.ReturnType)
+	For Each P As Parameter In m.Parameters
+		WriteParameter(P)
+	Next
+	builder = builder.up
+End Sub
+
+Private Sub WriteParameter(P As Parameter)
+	builder = builder.e("parameter")
+	WriteElement("name", P.Name)
+	WriteElement("type", P.parType)
+	builder = builder.up
+End Sub
+
+Private Sub WriteElement(e As String, t As String)
+	If t.Length > 0 Then
+		builder.e(e).t(t).up
+	End If
+End Sub
+
+Private Sub WriteList(fieldName As String, l1 As List)
+	For Each lib In l1
+		builder.e(fieldName).t(lib).up
+	Next
+End Sub
+
+

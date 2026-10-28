@@ -1,0 +1,47 @@
+#if B4A
+'ignore DIP related warnings as they are not relevant when working with BitmapCreator.
+#IgnoreWarnings: 6
+#end if
+Sub Class_Globals
+	Public X2 As X2Utils
+	Private xui As XUI 'ignore
+	Public world As B2World
+	Public Ground As X2BodyWrapper
+	Private ivForeground As B4XView
+	Private ivBackground As B4XView
+	Public lblStats As B4XView
+	Public TileMap As X2TileMap
+	Public Const ObjectLayer As String = "Object Layer 1"
+End Sub
+
+Public Sub Initialize (Parent As B4XView)
+	Parent.LoadLayout("GameLayout")
+	world.Initialize("world", world.CreateVec2(0, -10))
+	X2.Initialize(Me, ivForeground, world)
+	Dim WorldWidth As Float = 6 'meters
+	Dim WorldHeight As Float = WorldWidth / 1.333 'same ratio as in the designer script
+	X2.ConfigureDimensions(world.CreateVec2(WorldWidth / 2, WorldHeight / 2), WorldWidth)
+	'remove if not using Tiled:
+	TileMap.Initialize(X2, File.DirAssets, "map.json", Null)
+	TileMap.SetSingleTileDimensionsInMeters(WorldWidth / TileMap.TilesPerRow, WorldHeight / TileMap.TilesPerColumn)
+	TileMap.PrepareObjectsDef(ObjectLayer)
+	'comment to disable debug drawing
+	X2.EnableDebugDraw
+End Sub
+
+Public Sub Resize
+	X2.ImageViewResized
+End Sub
+
+Public Sub DrawingComplete
+	
+End Sub
+
+'Return True to stop the game loop.
+Public Sub BeforeTimeStep (GS As X2GameStep) As Boolean
+	Return False
+End Sub
+
+Public Sub Tick (GS As X2GameStep)
+	
+End Sub

@@ -1,0 +1,36 @@
+﻿AppType=StandardJava
+Build1=Default,b4j.example
+Group=Default Group
+Library1=jcore
+NumberOfFiles=0
+NumberOfLibraries=1
+NumberOfModules=0
+Version=10.3
+@EndOfDesignText@
+'Non-UI application (console / server application)
+#Region Project Attributes 
+	#CommandLineArgs:
+	#MergeLibraries: True 
+#End Region
+
+Sub Process_Globals
+	
+End Sub
+
+Sub AppStart (Args() As String)
+	Dim installed As List = File.ReadList("D:\Android5\extras\b4a_remote\installed-components.txt", "")
+	Dim recommended As List = File.ReadList("C:\Users\H\AppData\Roaming\B4ASdkManager\b4asdk_recommended_v7.txt", "")
+	Dim r As Map = CreateMap()
+	For Each rec As String In recommended
+		Dim ii As Int = rec.IndexOf("~~~")
+		If ii > -1 Then rec = rec.SubString2(0, ii)
+		r.Put(rec, "")
+	Next
+	For Each i As String In installed
+		If i.StartsWith("#") Then Continue
+		i = i.SubString2(0, i.IndexOf("=")).Replace("\:", ":")
+		If r.ContainsKey(i) = False Then
+			Log(i)
+		End If
+	Next
+End Sub

@@ -1,0 +1,12 @@
+'Handler class
+Sub Class_Globals
+	
+End Sub
+
+Public Sub Initialize
+	
+End Sub
+
+Sub Handle(req As ServletRequest, resp As ServletResponse)
+	
+End Sub

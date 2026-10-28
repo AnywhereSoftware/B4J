@@ -1,0 +1,52 @@
+﻿AppType=StandardJava
+Build1=Default,b4j.packager
+File1=FindDosPath.exe
+File2=icon.ico
+File3=InstallerScript.iss
+File4=release_java_modules.txt
+FileGroup1=New Group
+FileGroup2=New Group
+FileGroup3=New Group
+FileGroup4=New Group
+Group=Default Group
+Library1=jcore
+Library2=jshell
+Library3=javaobject
+Library4=json
+Library5=jokhttputils2
+Module1=|relative|..\MacSigner\Packager
+NumberOfFiles=4
+NumberOfLibraries=5
+NumberOfModules=1
+Version=10.5
+@EndOfDesignText@
+'Non-UI application (console / server application)
+#Region Project Attributes 
+	#CommandLineArgs: 
+	#MergeLibraries: True 
+#End Region
+#CommandLineArgs: packager.json
+Sub Process_Globals
+	
+End Sub
+
+Sub AppStart (Args() As String)
+	Start (Args)
+	StartMessageLoop
+End Sub
+
+Private Sub Start (Args() As String) 
+	Dim p As Packager
+	p.Initialize
+	Wait For (p.Run(Args)) Complete (Success As Boolean)
+	If Success Then
+		ExitApplication2(0)
+	Else
+		ExitApplication2(-1)
+	End If
+End Sub
+
+Public Sub MyLog(s As String)
+	Log(s)
+End Sub
+

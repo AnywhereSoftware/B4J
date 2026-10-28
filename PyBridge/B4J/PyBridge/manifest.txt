@@ -1,0 +1,3 @@
+Version=1.00
+Supported Platforms=B4J
+DependsOn=jNetwork, jShell, jRandomAccessFile, JavaObject, B4XCollections

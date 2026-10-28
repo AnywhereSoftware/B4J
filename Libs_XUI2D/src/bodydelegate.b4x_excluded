@@ -1,0 +1,16 @@
+Sub Class_Globals
+	Public bw As X2BodyWrapper
+	Private x2 As X2Utils 'ignore
+End Sub
+
+Public Sub Initialize (wrapper As X2BodyWrapper)
+	bw = wrapper
+	x2 = bw.X2
+	bw.DelegateTo = Me
+End Sub
+
+Public Sub Tick (GS As X2GameStep)
+	If GS.ShouldDraw Then
+		
+	End If
+End Sub

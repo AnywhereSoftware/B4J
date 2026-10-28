@@ -1,0 +1,5 @@
+4" Phone (480 x 854, scale = 1.5)|WVGA800|240|4"|4in_Phone
+6" Phone (480 x 854, scale = 1.0)|WVGA854|160|5.1"|6in_Phone
+10" Tablet (1280 x 752, scale = 1.0)|WXGA800|160|10.1"|10in_Tablet
+Wear OS Square|AndroidWearSquare|160|Wear OS Square,Android Wear Square|WearSquare
+Wear OS Round|AndroidWearRound|160|Wear OS Round,Android Wear Round|WearRound

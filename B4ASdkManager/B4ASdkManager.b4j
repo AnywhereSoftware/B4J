@@ -1,0 +1,763 @@
+﻿AppType=JavaFX
+Build1=Default,b4j.example
+File1=1.bjl
+File10=jaxb-xjc-2.0EA3.jar
+File11=ListItem.bjl
+File12=SmallTitle.bjl
+File13=style.css
+File14=TitleItem.bjl
+File15=Top.bjl
+File2=activation-1.0.2.jar
+File3=AVDListItem.bjl
+File4=AVDManager.bjl
+File5=AVDScreens.txt
+File6=Bottom.bjl
+File7=icon.png
+File8=jaxb-api-2.4.0.jar
+File9=jaxb-impl-2.1.jar
+FileGroup1=AVD
+FileGroup10=BinFiles
+FileGroup11=SDK
+FileGroup12=SDK
+FileGroup13=Shared\CSS Styles
+FileGroup14=SDK
+FileGroup15=Shared\Layouts
+FileGroup2=BinFiles
+FileGroup3=AVD
+FileGroup4=AVD
+FileGroup5=AVD
+FileGroup6=Shared\Layouts
+FileGroup7=Shared\Images
+FileGroup8=BinFiles
+FileGroup9=BinFiles
+Group=Default Group
+Library1=b4xcollections
+Library10=xml2map
+Library2=javaobject
+Library3=jcore
+Library4=jfx
+Library5=jokhttputils2
+Library6=jshell
+Library7=jxmlsax
+Library8=jxui
+Library9=xui views
+Module1=AVDManager
+Module2=MyLongTextTemplate
+Module3=RegexBuilder
+Module4=RemoteItems
+NumberOfFiles=15
+NumberOfLibraries=10
+NumberOfModules=4
+Version=10.3
+@EndOfDesignText@
+#Region Project Attributes 
+	#MainFormWidth: 800
+	#MainFormHeight: 800 
+#End Region
+'#JavaCompilerPath: 8, C:\Program Files\Java\jdk1.8.0_211\bin\javac.exe
+'Do not run in Obfuscated mode!
+Sub Process_Globals
+	Private fx As JFX
+	Public MainForm As Form
+	Type SdkItem (Key As String, description As String, _
+		version As String, AndroidVersion As String, AndroidVersionForSorting As String, _
+		GoogleMaven As Boolean, Checked As Boolean)
+	Private txtPathToSdkManager As TextField
+	Private lstItems As ListView
+	Private SplitPane1 As SplitPane
+	Private btnNo As Button
+	Private btnYes As Button
+	Public InstalledItems As List
+	Private AvailableItems As List
+	Private RecommendedItems As List
+	Private RecommendedSet As Map
+	Private UpdateableItems As List
+	Private DataFolder As String
+	Private version As Float = 4.20
+	Private settingsFile As String = "settings.txt"
+	Private fc As FileChooser
+	Private chkItem As CheckBox
+	Private lblItem As Label
+	Private lblItemVersion As Label
+	Private btnRefresh As Button
+	Private lblTitle As Label
+	Private txtLogs As TextArea
+	Private lblPathTip As Label
+	Private btnInstall As Button
+	Private InstallShell As Shell
+	Private paneYesNo As Pane
+	Private OutputTimer As Timer
+	Private PrevOutputLength As Int
+	Private txtFilter As TextField
+	Private filterTerm As String
+	Private lblVersion As Label
+	Private btnAVDManager As Button
+	Private JavaPath As String
+	Private xui As XUI 'ignore
+	Private remote As RemoteItems
+	Private SearchTaskIndex As Int
+	Private AdditionalJavaOpts As String
+	Private ProxyHost, ProxyPort As String
+	Private AnotherProgressBar1 As AnotherProgressBar
+	Private Dialog As B4XDialog
+	Public LongText As MyLongTextTemplate
+	Private TempFolder As String
+	Public RecommendedResourcesWithExplicitVersions As Map
+	Public Const SDK4333796  = 1, SDK6609375 = 2 As Int
+	Public SDKVersion As Int
+End Sub
+
+Sub AppStart (Form1 As Form, Args() As String)
+	MainForm = Form1
+	MainForm.RootPane.LoadLayout("1")
+	LongText.Initialize
+	LongText.Resize(500, 400)
+	Dialog.Initialize(MainForm.RootPane)
+	Dialog.Title = "B4A Sdk Manager"
+	MainForm.WindowHeight = Min(fx.PrimaryScreen.MaxY - fx.PrimaryScreen.MinY - 200, 800)
+	SplitPane1.LoadLayout("Top")
+	SplitPane1.LoadLayout("Bottom")
+	SplitPane1.DividerPositions = Array As Double(0.8)
+	RecommendedResourcesWithExplicitVersions.Initialize
+	Dim avd As Boolean = ParseCommandLineArgs(Args)
+	LogMessage($"B4A Sdk Manager: ${NumberFormat2(version, 1, 2, 2, False)}"$)
+	LogMessage("TempFolder = " & TempFolder)
+	If ProxyHost <> "" Then
+		LogMessage("Using proxy: " & ProxyHost & ":" & ProxyPort)
+		SetSystemProperty("http.proxyHost", ProxyHost)
+		SetSystemProperty("https.proxyHost", ProxyHost)
+		SetSystemProperty("http.proxyPort", ProxyPort)
+		SetSystemProperty("https.proxyPort", ProxyPort)
+	End If
+	remote.Initialize
+	lblVersion.Text = $"Version: ${NumberFormat2(version, 0, 2, 2, False)}"$
+	MainForm.Show
+	DataFolder = File.DirData("B4ASdkManager")
+	LogMessage("DataFolder: " & DataFolder)
+	LoadSettings
+	OutputTimer.Initialize("OutputTimer", 100)
+	MainForm.Stylesheets.Add(File.GetUri(File.DirAssets, "style.css"))
+	lstItems.StyleClasses.Add("SdkList")
+	fc.Initialize
+	fc.SetExtensionFilter("sdkmanager.bat", Array("*.bat"))
+	RecommendedSet.Initialize
+	If IsPathSet And remote.FindInstalledItems.Size > 0 Then
+		
+	End If
+	SetBusy(True)
+	AddRequiredFilesForJava11
+	Dim j As HttpJob
+	j.Initialize("", Me)
+	If avd Then
+		btnAVDManager_Action
+	End If
+	Dim filename As String = $"b4asdk_recommended_v7.txt"$
+	If File.Exists(DataFolder, filename) Then
+		LogMessage("loading custom recommended list from DataFolder")
+		ReadRecommendedFile(File.OpenInput(DataFolder, filename))
+	Else
+		j.Download($"https://www.b4x.com/android/files/${filename}"$)
+		Wait For (j) JobDone(j As HttpJob)
+		If j.Success Then
+			ReadRecommendedFile(j.GetInputStream)
+		Else
+			ShowMessage("Error reading recommended items list.")
+		End If
+		j.Release
+	End If
+	SetBusy(False)
+	
+	If txtPathToSdkManager.Text.EndsWith("sdkmanager.bat") Then
+		lblPathTip.Visible = False
+		RefreshList (True)
+	End If
+	lstItems.RequestFocus
+End Sub
+
+Private Sub ReadRecommendedFile (in As InputStream)
+	Dim tr As TextReader
+	tr.Initialize(in)
+	For Each line As String In tr.ReadList
+		If line.StartsWith("#") Then Continue
+		Dim i As Int = line.IndexOf("~~~")
+		If i > -1 Then
+			Dim v As String = line.SubString(i + 3)
+			line = line.SubString2(0, i)
+			RecommendedResourcesWithExplicitVersions.Put(line, v)
+		End If
+		RecommendedSet.Put(line.Trim, "")
+	Next
+End Sub
+
+Private Sub AddRequiredFilesForJava11
+	If IsPathSet Then
+		Dim folder As String = GetBinFolder
+		If File.Exists(folder, "..\android.bat") Then
+			SDKVersion = SDK4333796
+			LogMessage("SDK version: 4333796")
+		Else
+			SDKVersion = SDK6609375
+			LogMessage("SDK version: 6609375")
+		End If
+		For Each f As String In Array("activation-1.0.2.jar", "jaxb-api-2.4.0.jar", "jaxb-impl-2.1.jar", "jaxb-xjc-2.0EA3.jar")
+			If File.Exists(folder, f) = False Then
+				File.Copy(File.DirAssets, f, folder, f)
+			End If
+		Next
+		
+		Dim eol As String = Chr(13) & Chr(10)
+		For Each f As String In Array("avdmanager.bat", "sdkmanager.bat")
+			Dim s As String = File.ReadString(folder, f)
+			If s.Contains("B4A") = False Then
+				s = s.Replace($""%JAVA_EXE%" %DEFAULT_JVM_OPTS%"$, _
+				$"@rem B4A change${eol}set CLASSPATH=%CLASSPATH%;%APP_HOME%\bin\jaxb-api-2.4.0.jar;%APP_HOME%\bin\jaxb-impl-2.1.jar;%APP_HOME%\bin\activation-1.0.2.jar${eol}"%JAVA_EXE%" %DEFAULT_JVM_OPTS%"$)
+				File.WriteString(folder, f, s)
+			End If
+		Next
+		If SDKVersion = SDK6609375 Then
+			File.MakeDir(folder, "stub")
+			If File.Exists(folder, "stub\avdmanager.bat") = False Then
+				Dim s As String = File.ReadString(folder, "avdmanager.bat")
+				s = s.Replace("set DIRNAME=%~dp0", "set DIRNAME=%~dp0..\")
+				File.WriteString(folder, "stub\avdmanager.bat", s)
+			End If
+		End If
+		
+	End If
+	
+End Sub
+
+
+Private Sub ParseCommandLineArgs(args() As String) As Boolean
+	Dim rb As RegexBuilder
+	rb.Initialize
+	rb.StartCapture.AppendAnyBut(Array("=")).AppendAtLeastOne.EndCapture _
+		.AppendEscaped("=").StartCapture.Append(rb.CharAny).AppendAtLeastOne.EndCapture
+	Dim avd As Boolean
+	For Each s As String In args
+		Dim m As Matcher = Regex.Matcher(rb.Pattern, s)
+		If m.Find Then
+			Dim key As String = m.Group(1)
+			Dim value As String = m.Group(2)
+			Select key
+				Case "ProxyHost"
+					ProxyHost = value
+				Case "ProxyPort"
+					ProxyPort = value
+				Case "Avd"
+					avd = value
+				Case "TempFolder"
+					TempFolder = value
+			End Select
+		Else
+			Log("Invalid arg: " & s)
+		End If
+	Next
+	If TempFolder = "" Then TempFolder = File.DirTemp
+	Return avd
+End Sub
+
+Sub CreateSdkManagerExec (args As List) As Shell
+	Dim s As Shell
+	Dim allArgs As List
+	allArgs.Initialize
+	allArgs.AddAll(Array("/c", txtPathToSdkManager.Text, "--verbose"))
+	allArgs.Add("--sdk_root=" & GetSdkRootFolder)
+	If ProxyHost <> "" Then
+		allArgs.AddAll(Array("--proxy_host=" & ProxyHost, $"--proxy_port=${ProxyPort}"$, "--proxy=http"))
+	End If
+	allArgs.AddAll(args)
+	s.Initialize("shl", "cmd", allArgs)
+	s.WorkingDirectory = GetBinFolder
+	s.Encoding = "ISO-8859-1"
+	SetEnvironment(s)
+	Return s
+End Sub
+
+
+
+Public Sub GetBinFolder As String
+	Return File.GetFileParent(txtPathToSdkManager.Text)
+End Sub
+
+Private Sub FindJava As String
+	If JavaPath <> "" Then Return JavaPath
+	JavaPath = GetSystemProperty("java.home", "")
+	Log($"Java Path: ${JavaPath}"$)
+	Dim s As String = GetSystemProperty("java.version", "")
+	If s.StartsWith("9") Or s.StartsWith("10")  Then
+		AdditionalJavaOpts = " --add-modules java.se.ee"
+	End If
+	Return JavaPath
+End Sub
+
+Public Sub SetEnvironment(s As Shell)
+	s.SetEnvironmentVariables(CreateMap("JAVA_HOME": FindJava, _
+		"JAVA_OPTS": $"-Djava.io.tmpdir=${TempFolder}"$ & AdditionalJavaOpts, _
+		"TMP": TempFolder, "TEMP": TempFolder, "SKIP_JDK_VERSION_CHECK": "True"))
+End Sub
+
+Public Sub GetSdkRootFolder As String
+	Return File.GetFileParent(File.GetFileParent(GetBinFolder))
+End Sub
+
+Sub OutputTimer_Tick
+	If InstallShell.IsInitialized = False Then Return
+	Dim str As String = InstallShell.GetTempOut
+	If str.Length <> PrevOutputLength Then
+		PrevOutputLength = str.Length
+		txtLogs.Text = str
+		txtLogs.SetSelection(txtLogs.Text.Length, txtLogs.Text.Length)
+		AnalyzeLastLogsLine(str)
+	End If
+End Sub
+
+
+Sub AnalyzeLastLogsLine (s As String)
+	Dim i As Int = s.LastIndexOf(Chr(10))
+	If i > -1 And i + 1< s.Length Then
+		Dim line As String = s.SubString(i + 1)
+		If line.Contains("(y/N)") Then
+			paneYesNo.Visible = True
+			paneYesNo.SetLayoutAnimated(0, 0, paneYesNo.Top, paneYesNo.Width, paneYesNo.Height)
+			paneYesNo.SetLayoutAnimated(500, txtLogs.Width - 30 - paneYesNo.Width, paneYesNo.Top, paneYesNo.Width, paneYesNo.Height)
+		End If
+	End If
+End Sub
+
+Sub btnYes_Action
+	SendMessageToProcess("y")
+End Sub
+
+Sub btnNo_Action
+	SendMessageToProcess("n")
+End Sub
+
+Sub SendMessageToProcess(s As String)
+	InstallShell.WriteToInputStream(s.GetBytes("utf8"))
+	InstallShell.WriteToInputStream(Array As Byte(13, 10))
+	paneYesNo.Visible = False
+End Sub
+
+
+Sub btnInstall_Action
+	SetBusy(True)
+	Dim selected As List
+	selected.Initialize
+	Dim GoogleMavenItems As List
+	GoogleMavenItems.Initialize
+	For Each list As List In Array(FilteredList(AvailableItems), FilteredList(RecommendedItems))
+		For Each si As SdkItem In list
+			If si.Checked Then
+				If si.GoogleMaven Then
+					GoogleMavenItems.Add(si)
+				Else
+					selected.Add($""${si.Key}""$)
+					DeleteOldInstallerData(si)
+				End If
+			End If
+		Next
+	Next
+	If selected.Size = 0 And GoogleMavenItems.Size = 0 Then
+		ShowMessage("Nothing selected!")
+		
+	Else
+		If GoogleMavenItems.Size > 0 Then
+			remote.SetPath(txtPathToSdkManager.Text)
+			Wait For (remote.DownloadItems(GoogleMavenItems)) Complete (Success As Boolean)
+		End If
+		If selected.Size > 0 Then
+			InstallShell = CreateSdkManagerExec(selected)
+			InstallShell.InputStreamEnabled = True
+			InstallShell.Run(-1)
+			Wait For (InstallShell) shl_ProcessCompleted (Success As Boolean, ExitCode As Int, StdOut As String, StdErr As String)
+			OutputTimer.Enabled = False
+		End If
+		txtLogs.Text = txtLogs.Text & CRLF & StdErr
+		txtLogs.SetSelection(txtLogs.Text.Length, txtLogs.Text.Length)
+		RefreshList (False)
+	End If
+	
+	SetBusy(False)
+End Sub
+
+Public Sub LogMessage(msg As String)
+	txtLogs.Text = txtLogs.Text & CRLF & msg
+	txtLogs.SetSelection(txtLogs.Text.Length, txtLogs.Text.Length)
+	Log(msg)
+End Sub
+
+
+Sub DeleteOldInstallerData(si As SdkItem)
+	Dim path As String = si.Key.Replace(";", "\") & "\.installer\.installData"
+	If File.Exists(GetSdkRootFolder, path) Then
+		 File.Delete(GetSdkRootFolder, path)
+	End If
+	
+End Sub
+
+Sub SetBusy(busy As Boolean)
+	btnRefresh.Enabled = Not(busy)
+	btnInstall.Enabled = Not(busy)
+	AnotherProgressBar1.Visible = busy
+	OutputTimer.Enabled = busy
+	paneYesNo.Visible = False	
+End Sub
+
+Sub IsPathSet As Boolean
+	Return txtPathToSdkManager.Text.ToLowerCase.EndsWith("sdkmanager.bat") And File.Exists(txtPathToSdkManager.Text, "")
+End Sub
+
+Sub RefreshList (Explicit As Boolean)
+	SetBusy(True)
+	InstalledItems.Initialize
+	AvailableItems.Initialize
+	UpdateableItems.Initialize
+	RecommendedItems.Initialize
+	If IsPathSet Then
+		remote.SetPath(txtPathToSdkManager.Text)
+		InstalledItems.AddAll(remote.FindInstalledItems)
+		Wait For (remote.FindAvailableItems(Explicit)) Complete (RemoteResult As List)
+		Wait For (PrintSdkManagerVersion) Complete (Result As String)
+		Dim s As Shell = CreateSdkManagerExec(Array("--list"))
+		s.Run(60000)
+		Wait For (s) shl_ProcessCompleted (Success As Boolean, ExitCode As Int, StdOut As String, StdErr As String)
+		If Success = False Or ExitCode <> 0 Then
+			ShowMessage("Error: "  & MergeErrorAndOutput(StdOut, StdErr))
+		Else
+			ParseListResult(StdOut)
+		End If
+		AvailableItems.SortType("description", True)
+		AvailableItems.SortType("AndroidVersionForSorting", False)
+		For Each si As SdkItem In RemoteResult
+			AddItemToAvailable(si)
+		Next
+		FillList
+		lstItems.ScrollTo(0)
+		CopyDDMlib
+	Else
+		ShowMessage("sdkmanager.bat not found.")
+	End If
+	SetBusy(False)
+	If AVDManager.Form.IsInitialized Then
+		AVDManager.UpdateAfterSdkManagerIsUpdated
+	End If
+End Sub
+
+Private Sub PrintSdkManagerVersion As ResumableSub
+	Dim s As Shell = CreateSdkManagerExec(Array("--version"))
+	s.Run(60000)
+	Wait For (s) shl_ProcessCompleted (Success As Boolean, ExitCode As Int, StdOut As String, StdErr As String)
+	If Success = False Or ExitCode <> 0 Then
+		ShowMessage("Error: "  & MergeErrorAndOutput(StdOut, StdErr))
+	Else
+		LogMessage("sdkmanager.bat version: " & StdOut)
+	End If
+	Return ""
+End Sub
+
+
+Public Sub MergeErrorAndOutput(StdOut As String, StdErr As String) As String
+	Return StdErr & CRLF & StdOut
+End Sub
+
+Sub CopyDDMlib
+	Dim libsFolder As String = File.Combine(GetSdkRootFolder, "tools\lib")
+	If File.Exists(libsFolder, "") = False Then
+		libsFolder = File.Combine(GetSdkRootFolder, "cmdline-tools\lib")
+	End If
+	If File.Exists(libsFolder, "ddmlib.jar") = False Then
+		For Each f As String In File.ListFiles(libsFolder)
+			If Regex.IsMatch("ddmlib-\d.*\.jar", f) Then
+				File.Copy(libsFolder, f, libsFolder, "ddmlib.jar")
+				Exit
+			End If
+		Next
+	End If
+End Sub
+
+Sub ParseListResult (StdOut As String)
+'	Log(StdOut)
+	Dim lines() As String = Regex.Split2("\R", Regex.MULTILINE, StdOut)
+	Dim index(1) As Int
+	Dim CurrentMap As List
+	Dim InAvailableItems As Boolean
+	Do While index(0) < lines.Length
+		Dim line As String = lines(index(0))
+		If line.StartsWith("-------") Then
+			Select lines(index(0) - 1).Trim
+				Case "Installed packages:"
+					CurrentMap = InstalledItems
+					InAvailableItems = False
+				Case "Available Packages:"
+					CurrentMap = AvailableItems
+					InAvailableItems = True
+				Case "Available Updates:"
+					InAvailableItems = False
+					CurrentMap = UpdateableItems
+			End Select
+		Else
+			If line = "done" Then Exit
+			If line.Length > 0 Then
+				Dim c As String = line.CharAt(0)
+				If c.ToUpperCase <> c Then
+					Dim si As SdkItem = ParseItem(index, lines)
+					If InAvailableItems Then
+						AddItemToAvailable(si)
+					Else
+						CurrentMap.Add(si)
+					End If
+				End If
+			End If
+		End If
+		index(0) = index(0) + 1
+	Loop
+End Sub
+
+Private Sub AddItemToAvailable(si As SdkItem)
+	If IsInstalled(si, True) Then Return
+	If RecommendedSet.ContainsKey(si.Key) Then
+		si.Checked = True
+		RecommendedItems.Add(si)
+	Else
+		AvailableItems.Add(si)
+	End If
+End Sub
+
+Public Sub IsInstalled (si As SdkItem, CheckVersion As Boolean) As Boolean
+	For Each s As SdkItem In InstalledItems
+		If si.Key = s.Key And (CheckVersion = False Or (si.version = s.version)) Then Return True
+	Next
+	Return False
+End Sub
+
+Sub ParseItem(Index() As Int, Lines() As String) As SdkItem
+	Dim si As SdkItem
+	si.Initialize
+	si.Key = Lines(Index(0))
+	For Each p As String In Regex.Split(";", si.Key)
+		If p.StartsWith("android-") Then
+			si.AndroidVersion = p.SubString("android-".Length)
+			If si.AndroidVersion.Length = 1 Then 
+				si.AndroidVersionForSorting = "0" & si.AndroidVersion
+			Else
+				si.AndroidVersionForSorting = si.AndroidVersion
+			End If
+			Exit
+		End If
+	Next
+	
+	Dim i As Int = Index(0) + 1
+	Do While i < Lines.Length
+		Dim m As Matcher = Regex.Matcher("\s+([^:]+):(.*)", Lines(i))
+		If m.Find Then
+			Dim field As String = m.Group(1).Trim
+			Dim value As String = m.Group(2).Trim
+			Select field
+				Case "Description"
+					si.description = value
+				Case "Version"
+					si.version = value
+			End Select
+		Else
+			Exit
+		End If
+		i = i + 1
+	Loop
+	Index(0) = i - 1
+	Return si
+End Sub
+
+Sub txtFilter_TextChanged (Old As String, New As String)
+	SearchTaskIndex = SearchTaskIndex + 1
+	Dim myIndex As Int = SearchTaskIndex
+	Sleep(400)
+	If myIndex <> SearchTaskIndex Then Return
+	If New.Length > 1 Then
+		filterTerm = New.ToLowerCase
+		FillList
+	Else if filterTerm <> "" Then
+		filterTerm = ""
+		FillList
+	End If
+End Sub
+
+Sub FillList
+	lstItems.Items.Clear
+	If RecommendedItems.Size > 0 Then
+		lstItems.Items.Add(TitleItem("Recommended"))
+		For Each si As SdkItem In FilteredList(RecommendedItems)
+			lstItems.Items.Add(SdkItemToListItem(si, True))
+		Next
+	End If
+	lstItems.Items.Add(TitleItem("Installed"))
+	For Each si As SdkItem In FilteredList(InstalledItems)
+		lstItems.Items.Add(SdkItemToListItem(si, False))
+	Next
+	Dim CurrentVersion As String = ""
+'	Log("AvailableItems")
+	lstItems.Items.Add(TitleItem("All"))
+	For Each si As SdkItem In FilteredList(AvailableItems)
+	'	Log(si.Key & ": " & si.version)
+		If si.AndroidVersion <> CurrentVersion Then
+			lstItems.Items.Add(SmallTitleItem(si.AndroidVersion))
+			CurrentVersion = si.AndroidVersion
+		End If
+		lstItems.Items.Add(SdkItemToListItem(si, True))
+	Next
+End Sub
+
+Sub FilteredList(lst As List) As List
+	Dim res As List
+	res.Initialize
+	For Each si As SdkItem In lst
+		If si.description.ToLowerCase.Contains(filterTerm) Then
+			res.Add(si)
+		Else if si.AndroidVersion <> "" And ("android " & si.AndroidVersion).Contains(filterTerm) Then
+			res.Add(si)
+		End If
+		
+	Next
+	Return res
+End Sub
+
+Sub SdkItemToListItem (si As SdkItem, ShowCheckbox As Boolean) As Pane
+	Dim pane As Pane = CreatePaneForListItem
+	pane.LoadLayout("ListItem")
+	pane.Tag = si
+	lblItem.Text = si.description
+	If si.AndroidVersion <> "" Then lblItem.Text = $"${lblItem.Text} (Android ${si.AndroidVersion})"$
+	lblItemVersion.Text = "Version: " & si.version
+	chkItem.Visible = ShowCheckbox
+	chkItem.Checked = si.Checked
+	Return pane
+End Sub
+
+Sub TitleItem(msg As String) As Pane
+	Dim pane As Pane = CreatePaneForListItem
+	pane.LoadLayout("TitleItem")
+	lblTitle.Text = msg
+	Return pane
+End Sub
+
+Sub SmallTitleItem(AndroidVersion As String) As Pane
+	Dim pane As Pane = CreatePaneForListItem
+	pane.LoadLayout("SmallTitle")
+	If AndroidVersion <> "" Then
+		lblTitle.Text = Chr(0xF17B) & "   Android - " & AndroidVersion
+	Else
+		lblTitle.Text = "Extra"
+	End If
+	Return pane
+	
+End Sub
+
+Sub CreatePaneForListItem As Pane
+	Dim pane As Pane
+	pane.Initialize("")
+	pane.SetSize(lstItems.Width - 40, 32)
+	Return pane
+End Sub
+
+Sub MainForm_Resize (Width As Double, Height As Double)
+	For Each p As Pane In lstItems.Items
+		p.SetSize(lstItems.Width - 40, p.Height)
+	Next
+End Sub
+
+Sub ShowMessage(msg As String)
+	LongText.Text = msg
+	Dialog.ShowTemplate(LongText, "OK", "", "")
+End Sub
+
+Sub MainForm_Closed
+	WriteSetting
+End Sub
+
+Sub WriteSetting
+	File.WriteMap(DataFolder, settingsFile, CreateMap("sdkmanager": txtPathToSdkManager.Text, "version": version))
+End Sub
+
+Sub LoadSettings
+	If File.Exists(DataFolder, settingsFile) Then
+		Dim m As Map = File.ReadMap(DataFolder, settingsFile)
+		txtPathToSdkManager.Text = m.GetDefault("sdkmanager", "")
+	End If
+End Sub
+
+Sub txtPathToSdkManager_Action
+	If txtPathToSdkManager.Text.EndsWith("sdkmanager.bat") Then
+		AddRequiredFilesForJava11
+		WriteSetting
+		RefreshList (True)
+	End If
+End Sub
+
+Sub btnSdkManagerBrowse_Action
+	If txtPathToSdkManager.Text <> "" Then
+		If File.Exists(File.GetFileParent(txtPathToSdkManager.Text), "") Then
+			fc.InitialDirectory = File.GetFileParent(txtPathToSdkManager.Text)
+		End If
+	End If
+	Dim res As String = fc.ShowOpen(MainForm)
+	If res.EndsWith("sdkmanager.bat") Then
+		txtPathToSdkManager.Text = res
+		txtPathToSdkManager_Action
+	End If
+End Sub
+
+Sub btnRefresh_Click
+	RefreshList (True)
+End Sub
+
+
+'Return true to allow the default exceptions handler to handle the uncaught exception.
+Sub Application_Error (Error As Exception, StackTrace As String) As Boolean
+	Log(StackTrace)
+	fx.Msgbox(MainForm, Error.Message, "Error")
+	SetBusy(False)
+	Return False
+End Sub
+
+Sub btnHelp_Action
+	fx.ShowExternalDocument("https://www.b4x.com/b4a.html#installation")
+End Sub
+
+Sub btnAVDManager_Action
+	If IsPathSet = False Then
+		ShowMessage("Path to sdkmanager.bat not set.")
+		Return
+	End If
+	AVDManager.Show
+End Sub
+
+Sub btnDownloadSDK_Click
+	fx.ShowExternalDocument("https://www.b4x.com/b4a.html#installation")
+End Sub
+
+Sub chkItem_CheckedChange(Checked As Boolean)
+	Dim n As Node = Sender
+	Dim pane As Pane = n.Parent
+	Dim si As SdkItem = pane.Tag
+	si.Checked = Checked
+End Sub
+
+Private Sub btnDeselectAll_Click
+	For Each list As List In Array(AvailableItems, RecommendedItems)
+		For Each si As SdkItem In list
+			si.Checked = False
+		Next
+	Next
+	For Each pnl As B4XView In lstItems.Items
+		If pnl.Tag Is SdkItem Then
+			pnl.GetView(1).Checked = False
+		End If
+	Next
+End Sub
+
+Private Sub lblItem_MouseClicked (EventData As MouseEvent)
+	If EventData.SecondaryButtonPressed Then
+		Dim si As SdkItem = Sender.As(B4XView).Parent.Tag
+		fx.Clipboard.SetString(si.Key)
+	End If
+End Sub

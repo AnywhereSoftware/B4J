@@ -1,0 +1,21 @@
+'WebSocket class
+Sub Class_Globals
+	Private ws As WebSocket
+End Sub
+
+Public Sub Initialize
+	
+End Sub
+
+'Return False to reject the upgrade request. 
+Private Sub WebSocket_Upgrade (UpgradeRequest As ServletRequest) As Boolean
+	Return True
+End Sub
+
+Private Sub WebSocket_Connected (WebSocket1 As WebSocket)
+	ws = WebSocket1
+End Sub
+
+Private Sub WebSocket_Disconnected
+
+End Sub

@@ -1,0 +1,104 @@
+﻿AppType=StandardJava
+Build1=Default,b4j.example
+Group=Default Group
+Library1=jcore
+Library2=jshell
+Library3=javaobject
+Library4=b4xcollections
+NumberOfFiles=0
+NumberOfLibraries=4
+NumberOfModules=0
+Version=10
+@EndOfDesignText@
+'Non-UI application (console / server application)
+#Region Project Attributes 
+	#CommandLineArgs:
+	#MergeLibraries: True 
+#End Region
+
+#Region Application_Error
+'Return true to allow the default exceptions handler to handle the uncaught exception.
+Sub Application_Error (Error As Exception, StackTrace As String) As Boolean
+	Return True
+End Sub
+#End Region
+Sub Process_Globals
+	Private Files As List	
+	Private SharedFiles As B4XSet
+End Sub
+
+Sub AppStart (Args() As String)
+	Log("Zipper v1.03")
+	Log("Collecting files")
+	Files.Initialize
+	SharedFiles.Initialize
+	Dim RootFolder As String = File.GetFileParent(File.GetFileParent(GetCanonicalPath(File.DirApp)))
+	Dim RootParent As String = File.GetFileParent(RootFolder)
+	Dim target As String = Args(0)
+	If target.Contains(":") = False Then target = File.Combine(RootParent, target)
+	File.Delete(target, "")
+	Log("Root: " & RootFolder)
+	If GetSystemProperty("ZeroSharedFiles", "False") = "True" Then
+		If File.Exists(RootFolder, "Shared Files") Then
+			For Each sf As String In File.ListFiles(File.Combine(RootFolder, "Shared Files"))
+				SharedFiles.Add(sf.ToLowerCase)
+			Next
+		End If
+	End If
+	Dim RootPrefix As String = File.GetName(RootFolder)
+	FindFiles(RootFolder, RootPrefix)
+	For Each ExtraFolder As String In Array("B4A\Objects\res\mipmap", "B4A\Objects\res\drawable")
+		If File.Exists(RootFolder, ExtraFolder) Then
+			FindFiles(File.Combine(RootFolder, ExtraFolder), RootPrefix & "/" & ExtraFolder.Replace("\", "/"))
+		End If
+	Next
+	Log($"Found ${Files.Size} file(s)"$)
+	File.WriteList(RootParent, "Files.txt", Files)
+	Dim jdk As String = GetSystemProperty("java.home", "")
+	If File.GetName(jdk) = "jre" Then jdk = File.GetFileParent(jdk)
+	Dim shl As Shell
+	shl.Initialize("", File.Combine(jdk, "bin/jar.exe"), Array("-cfM", target, $"@files.txt"$))
+	shl.WorkingDirectory = RootParent
+	Dim res As ShellSyncResult = shl.RunSynchronous(60000)
+	If res.Success And res.ExitCode = 0 Then
+		Log($"Success. Zip size: $1.0{File.Size(target, "") / 1024}KB"$)
+		Log(target)
+	Else
+		Log("Error: " & res.StdOut & CRLF & res.StdErr)
+	End If
+	File.Delete(RootParent, "Files.txt")
+	If GetSystemProperty("DontShowExplorer", "False") = "False" Then
+		shl.Initialize("", "explorer.exe", Array("/select", ",", target))
+		shl.RunSynchronous(-1)
+	End If
+End Sub
+
+Sub FindFiles (Folder As String, Prefix As String)
+	Dim FilesFolder As Boolean = File.GetName(Folder) = "Files"
+	Dim EmptyFolder As Boolean = True
+	For Each f As String In File.ListFiles(Folder)
+		EmptyFolder = False
+		If File.IsDirectory(Folder, f) Then
+			If f = "AutoBackups" Or f = "Objects" Then Continue
+			FindFiles(File.Combine(Folder, f), Prefix & "/" & f)
+		Else
+			If FilesFolder And SharedFiles.Contains(f.ToLowerCase) Then
+				File.WriteString(Folder, f, "")
+			End If
+			Files.Add(QUOTE & Prefix & "/" & f & QUOTE)
+		End If
+	Next
+	If EmptyFolder Then
+		Files.Add(QUOTE & Prefix & "/")
+	End If
+End Sub
+
+Sub GetCanonicalPath(Path As String) As String
+	Dim fileO As JavaObject
+	fileO.InitializeNewInstance("java.io.File", Array As Object(Path))
+	Return fileO.RunMethod("getCanonicalPath", Null)
+End Sub
+
+
+
+

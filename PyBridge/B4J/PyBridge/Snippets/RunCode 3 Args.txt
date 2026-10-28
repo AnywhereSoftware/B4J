@@ -1,0 +1,9 @@
+Private Sub $MethodName$ ($Arg1$ As Object, $Arg2$ As Object, $Arg3$ As Object) As PyWrapper
+	Dim Code As String = $"
+def $MethodName$ ($Arg1$, $Arg2$, $Arg3$):
+    #python code here
+	$end$
+	return $Arg1$ + $Arg2$ + $Arg3$
+"$
+	Return Py.RunCode("$MethodName$", Array($Arg1$, $Arg2$, $Arg3$), Code)
+End Sub

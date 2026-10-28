@@ -1,0 +1,9 @@
+﻿ModuleBookmarks0=
+ModuleBookmarks1=
+ModuleBreakpoints0=
+ModuleBreakpoints1=
+ModuleClosedNodes0=
+ModuleClosedNodes1=
+NavigationStack=Packager,ParseInput,117,2,Packager,ModulesToString,373,0,Packager,BuildRunner,449,6,Packager,CreateAppManifest,386,6,Packager,SettingsFromMap,131,6,Packager,IsSupportedJavaVersion,106,2,Packager,Run,65,2,Packager,Jlink,339,0,Packager,FindRequiredModules,302,0,Packager,Class_Globals,3,6
+SelectedBuild=0
+VisibleModules=1

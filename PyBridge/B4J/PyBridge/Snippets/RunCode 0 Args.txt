@@ -1,0 +1,9 @@
+Private Sub $MethodName$ As PyWrapper
+	Dim Code As String = $"
+def $MethodName$ ():
+    #python code here
+	$end$
+	return 0.12345
+"$
+	Return Py.RunCode("$MethodName$", Array(), Code)
+End Sub

@@ -1,0 +1,31 @@
+﻿AppType=StandardJava
+Build1=Default,b4j.example
+Group=Default Group
+Library1=jcore
+Library2=xmlbuilder
+Module1=Parser
+NumberOfFiles=0
+NumberOfLibraries=2
+NumberOfModules=1
+Version=10.7
+@EndOfDesignText@
+'Non-UI application (console / server application)
+#Region  Project Attributes 
+	#CommandLineArgs: C:\Users\H\AppData\Local\Temp\BvSshSftp-96DD0GWB\8B0M76DP\UK00HFN1\iCore.h "C:\Users\H\Documents\Visual Studio 2013\Projects\B4i\B4i\bin\Debug\libraries\iCore.xml"
+	#MergeLibraries: True 
+#End Region
+#JavaCompilerPath: 8, C:\Program Files\Java\jdk1.8.0_211\bin\javac.exe
+Sub Process_Globals
+
+End Sub
+
+Sub AppStart (Args() As String)
+	Dim p As Parser
+	p.Initialize
+	Log("Parse: " & Args(0) & CRLF & Args(1))
+	
+	p.Parse(Args(0), Args(1))
+End Sub
+
+
+

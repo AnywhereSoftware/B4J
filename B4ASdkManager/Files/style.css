@@ -1,0 +1,6 @@
+.SdkList .list-cell {
+    -fx-cell-size: 40px;
+}
+.AVDList .list-cell {
+    -fx-cell-size: 80px;
+}

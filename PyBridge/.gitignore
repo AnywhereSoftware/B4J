@@ -1,0 +1,8 @@
+# ignore files
+*.meta
+*.zip
+*.class
+*.java
+*.xml
+*.jar
+subs.txt
